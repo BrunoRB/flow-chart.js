@@ -1,0 +1,11 @@
+{
+	"name": "flow-chart.js",
+	"version": "0.0.1",
+	"author": "BrunoRB",
+	"devDependencies": {
+		"grunt": "~0.4.1",
+		"grunt-contrib-less": "latest",
+		"grunt-plato": "latest",
+		"grunt-contrib-clean" : "latest"
+	}
+}
