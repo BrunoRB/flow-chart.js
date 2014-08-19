@@ -1,0 +1,255 @@
+#right-area.flow.diagram.container {
+	width: @digram-container-width-percentage;
+	position: absolute;
+	top: 0;
+	right: 0;
+
+	#alert-messages {
+		position: fixed;
+		top: 10%;
+		right: 4%;
+		opacity: 0;
+		height: 80px;
+		width: 200px;
+		margin: 10px;
+		border-radius: 10px;
+		text-align: center;
+		font-family: monospace;
+		font-size: large;
+		font-weight: bold;
+		z-index: @z-index-absolute;
+
+		span {
+			position: absolute;
+			left: 5%;
+			right: 5%;
+			top: 10%;
+			bottom: 10%;
+		}
+
+		&[data-flow-message-type="info"] {
+			box-shadow: 0 0 10px @bright-color;
+		}
+		&[data-flow-message-type="warning"] {
+			box-shadow: 0 0 10px @danger-color;
+		}
+		&[data-flow-message-type="success"] {
+			box-shadow: 0 0 10px @success-color;
+		}
+		&[data-flow-message-type="error"] {
+			box-shadow: 0 0 10px @error-color;
+		}
+	}
+
+	.flow.tab.menu {
+		position: relative;
+		margin: 10px 0 0 0;
+		height: @tab-menu-height;
+
+		.flow.tab.item {
+			position: relative;
+			display: inline;
+			padding: 10px 20px 10px 20px;
+			border-top-left-radius: @border-radius;
+			border-top-right-radius: @border-radius;
+
+			a.flow.tab.link {
+				position: relative;
+				text-decoration: none;
+				color: @test-primary-color;
+				padding-left: 2%;
+				padding-right: 2%;
+				&:hover {
+					cursor: pointer;
+				}
+			}
+
+			.flow.tab.close {
+				color: @danger-color;
+				position: absolute;
+				top: -5px;
+				right: 5px;
+				font-size: 24px;
+				font-weight: bold;
+				font-style: italic;
+				opacity: @low-opacity;
+				&:hover {
+					cursor: pointer;
+					opacity: 1;
+				}
+			}
+
+			&:not(.active) {
+				opacity: @low-opacity;
+				&:hover {
+					opacity: 1;
+				}
+			}
+
+			&.active {
+				border: @border-size solid @bright-color;
+				border-bottom: 6px solid white;
+				z-index: @z-index-high;
+			}
+		}
+	}
+
+	.flow.active.diagram {
+		.unselectable();
+		outline: none;
+		position: absolute;
+		top: @tab-menu-height;
+		height: 100%;
+		width: 100%;
+		overflow: scroll;
+		border: @border-size solid @bright-color;
+		z-index: @z-index-moderate;
+
+		.flow.diagram.toolbar {
+			position: fixed;
+			right: 1.5%;
+			margin-top: 8%;
+			height: 253px;
+			border: 1px solid @bright-color;
+			z-index: @z-index-high;
+			background-color: @dark-color;
+			color: white;
+			border-radius: @border-radius;
+
+			input[type="radio"] {
+				position: absolute;
+				visibility: hidden;
+				z-index: @z-index-moderate;
+				display: block;
+
+				&:checked + label {
+					opacity: 1;
+					background-color: @bright-color;
+
+					&:first-of-type {
+						border-top-left-radius: @border-radius;
+						border-top-right-radius: @border-radius;
+					}
+					&:last-of-type {
+						border-bottom-left-radius: @border-radius;
+						border-bottom-right-radius: @border-radius;
+					}
+				}
+			}
+
+			label {
+				cursor: pointer;
+				display: block;
+				padding: 10px;
+				opacity: @low-opacity;
+
+				&:hover {
+					opacity: @medium-opacity;
+					background-color: @bright-color;
+				}
+
+			}
+		}
+
+		.connection.label {
+			font-weight: bold;
+			color: @bright-color;
+			font-size: large;
+			position: absolute;
+		}
+	}
+
+	#console-area {
+		position: fixed;
+		width: @digram-container-width-percentage;
+		border: 1px solid @bright-color;
+		background-color: white;
+		bottom: 0;
+		z-index: @z-index-absolute;
+		height: 0;
+
+		.console.toggle.button {
+			position: absolute;
+			left: 0;
+			bottom: 100%;
+			border: 1px solid @dark-color;
+			border-bottom: 1px solid @bright-color;
+			background-color: white;
+			padding: 18px;
+			border-top-left-radius: @border-radius;
+			border-top-right-radius: @border-radius;
+		}
+
+		.console.execution.buttons {
+			.unselectable();
+			float: left;
+			width: 30%;
+			border-right: 1px solid black;
+			height: 100%;
+
+			button {
+				text-transform: uppercase;
+				font-weight: bold;
+				font-family: monospace;
+				font-size: large;
+				font-style: italic;
+				margin: 20px;
+				border-radius: 2px;
+
+				&.execute, &.start.debug {
+					background-color: @bright-color;
+					height: 40px;
+					width: 150px;
+					i {
+						color: white;
+					}
+
+				}
+
+				&.debug.next, &.stop.debug {
+					height: 40px;
+					width: 40px;
+					background-color: white;
+				}
+
+				&.debug.next i {
+					color: @bright-color;
+				}
+				&.stop.debug i {
+					color: @danger-color;
+				}
+
+				i {
+					left: 1%;
+					width: 20px;
+				}
+			}
+		}
+
+		.console.exhibition {
+			float: left;
+			width: 33%;
+			border-right: 1px solid black;
+			height: 100%;
+			overflow-y: scroll;
+			padding: 1%;
+
+			.terminal {
+				position: fixed;
+			}
+			.clean.console {
+				color: @danger-color;
+				position: fixed;
+				left: 68%;
+				cursor: pointer;
+				&:hover {
+					opacity: @medium-opacity;
+				}
+			}
+			.content {
+				margin-bottom: 15%;
+				padding-left: 10%;
+			}
+		}
+	}
+}

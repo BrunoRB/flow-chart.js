@@ -1,0 +1,50 @@
+#left-area {
+	.flow.logo {
+		height: @tab-menu-height;
+		text-align: center;
+		width: 100 - @digram-container-width-percentage;
+	}
+
+	/** Can't be absolute or relative, it will force overflow when you try to drag shapes out ! */
+	.flow.shape.menu {
+		.unselectable();
+
+		position: static;
+		height: 400px;
+		border: 1px dashed @bright-color;
+		overflow-y: scroll;
+		width: 100 - @digram-container-width-percentage;
+		overflow-x: hidden;
+	}
+
+	.flow.toolbar.menu {
+
+		div.flow.toolbar.list.container {
+			@padding: 10px;
+
+			margin-left: 20px;
+			margin-right: 20px;
+			font-size: large;
+
+			&:hover {
+				i:first-child {
+				}
+
+				ul.flow.toolbar.list li {
+					z-index: @z-index-absolute;
+				}
+			}
+
+			ul.flow.toolbar.list {
+
+				li {
+					padding-left: 20px;
+				}
+			}
+		}
+
+		a {
+			text-decoration: none;
+		}
+	}
+}
