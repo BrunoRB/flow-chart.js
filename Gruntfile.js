@@ -34,9 +34,9 @@ module.exports = function(grunt) {
 			{data: {shapes: _shapes}}
 		);
 
-	grunt.file.write('./src/index.html', processedTemplate);
+	grunt.file.write('./index.html', processedTemplate);
 
-    // Project configuration.
+	// Project configuration.
     grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json')
     });

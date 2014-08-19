@@ -31,11 +31,11 @@ var flow = (function(flow, jsPlumb) {
 			manualInputSpan = shapeMenu.querySelector('div.shape.manual_input .shape.image'),
 			manualInputNewImg = document.createElement('img');
 
-		displayNewImg.src = 'img/display.gif';
+		displayNewImg.src = 'src/img/display.gif';
 		displayNewImg.className = 'shape image';
 		displaySpan.parentNode.replaceChild(displayNewImg, displaySpan);
 
-		manualInputNewImg.src = 'img/manual_input.png';
+		manualInputNewImg.src = 'src/img/manual_input.png';
 		manualInputNewImg.className = 'shape image';
 		manualInputSpan.parentNode.replaceChild(manualInputNewImg, manualInputSpan);
 	};
