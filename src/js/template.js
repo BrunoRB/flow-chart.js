@@ -8,24 +8,6 @@ var flow = (function(flow) {
 
 	var Templates = flow.Templates;
 
-	Templates.diagramToolbar = '<div class="flow diagram toolbar">' +
-		'<input id="style-Bezier" type="radio" name="connector-style" value="Bezier" checked>' +
-		'<label for="style-Bezier" class="fa fa-level-down" title="Bezier connector"></label>' +
-		'<input id="style-StateMachine" type="radio" name="connector-style" value="StateMachine">' +
-		'<label for="style-StateMachine" class="fa fa-level-down" title="StateMachine connector"></label>' +
-		'<input id="style-Flowchart" type="radio" name="connector-style" value="Flowchart">' +
-		'<label for="style-Flowchart" class="fa fa-level-down" title="Flowchart connector"></label>' +
-		'<input id="style-Straight" type="radio" name="connector-style" value="Straight">' +
-		'<label for="style-Straight" class="fa fa-level-down" title="Straight connector"></label>' +
-		'<hr>' +
-		'<input id="type-simple" type="radio" name="connector-type" value="simple">' +
-		'<label for="type-simple" class="fa fa-minus" title="simple"></label>' +
-		'<input id="type-unidirectionalArrow" type="radio" name="connector-type" value="unidirectionalArrow">' +
-		'<label for="type-unidirectionalArrow" class="fa fa-long-arrow-right" title="unidirectionalArrow"></label>' +
-		'<input id="type-bidirectionalArrow" type="radio" name="connector-type" value="bidirectionalArrow">' +
-		'<label for="type-bidirectionalArrow" class="fa fa-arrows-h" title="bidirectionalArrow"></label>' +
-	'</div>';
-
 	Templates.getShapeInnerInput = function(text) {
 		return '<input type="text" value="' + text + '" />';
 	};
@@ -44,7 +26,7 @@ var flow = (function(flow) {
 		}
 
 		return '<div id="' + id + '" class="flow active diagram" title="' + diagramName + '" ' +
-			'data-flow-name="' + diagramName + '" tabindex="-1">' + Templates.diagramToolbar +
+			'data-flow-name="' + diagramName + '" tabindex="-1">' +
 		'</div>';
 	};
 

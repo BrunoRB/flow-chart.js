@@ -63,10 +63,6 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		flow.Listeners.setupDiagramEvents(newDiagram);
 
-		_markCurrentConnectorStyleIcon(newDiagram);
-
-		_markInitialConnectorType(newDiagram);
-
 		flow.UI.enableExecutionButtons();
 
 		return newDiagram;
@@ -154,49 +150,22 @@ var flow = (function(flow, doc, jsPlumb) {
 		jsPlumb.setSuspendDrawing(true);
 
 		for (var i=shapesArray.length; i--; ) {
-			var shapeData = shapesArray[i];
-			var sShape = diagram.querySelector('[data-flow-shape-id="' + shapeData.id + '"]');
+			var shapeData = shapesArray[i],
+				sShape = diagram.querySelector('[data-flow-shape-id="' + shapeData.id + '"]');
 
 			var targetConnections = shapeData.targetConnections;
 			for (var id in targetConnections) {
-				var connectionData = targetConnections[id];
-				var tShape = diagram.querySelector('[data-flow-shape-id="' + id + '"]');
+				var connectionData = targetConnections[id],
+					tShape = diagram.querySelector('[data-flow-shape-id="' + id + '"]');
 				jsPlumb.connect({
 					source: sShape,
 					target: tShape,
-					connector: connectionData.style,
-					label: connectionData.label || '',
-					overlays: flow.getConnectionOverlayByType(connectionData.type),
-					parameters: {
-						connectorType: connectionData.type
-					}
+					label: connectionData.label || ''
 				});
 			}
 		}
 		jsPlumb.setSuspendDrawing(false, true);
 	};
-
-	flow.getConnectionOverlayByType = function(type) {
-		var overlay = [];
-		switch(type) {
-			case 'simple':
-				overlay = [];
-				break;
-			case 'unidirectionalArrow':
-				overlay = [
-					['Arrow', {width: 25, length: 25, location: 1}]
-				];
-				break;
-			case 'bidirectionalArrow':
-				overlay = [
-					['Arrow', {width: 25, length: 25, location: 1}],
-					['Arrow', {width: 25, length: 25, location: 0, direction: -1}]
-				];
-				break;
-		}
-
-		return overlay;
-	}
 
 	flow.appendTabItemToDiagramArea = function(diagramName) {
 		var activeTab = Cache.tabMenuList.querySelector('.flow.tab.item.active');
@@ -223,22 +192,6 @@ var flow = (function(flow, doc, jsPlumb) {
 		if (currentDiagram !== null) {
 			flow.closeDiagram(currentDiagram);
 		}
-	};
-
-	/**
-	 * Mark the icon that represents the current connection style (stored in jsPlumb.Defaults.Connector)
-	 * @param {DOM_Object} diagram
-	 */
-	var _markCurrentConnectorStyleIcon = function(diagram) {
-		diagram.querySelector(
-			'.flow.diagram.toolbar input[name="connector-style"][value="' +  jsPlumb.Defaults.Connector + '"]'
-		).checked = true;
-	};
-
-	var _markInitialConnectorType = function(diagram) {
-		var inputType = diagram.querySelector('.flow.diagram.toolbar input#type-unidirectionalArrow');
-		inputType.checked = true;
-		flow.Util.trigger('change', inputType);
 	};
 
 	var _makeDiagramDroppable = function(diagram) {

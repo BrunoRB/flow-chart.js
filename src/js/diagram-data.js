@@ -7,8 +7,6 @@ var flow = (function(flow, doc, jsPlumb) {
 		data: {} // global data
 	}; // data structure with all the user diagrams (ecxcept the open one)
 
-	flow.currentConnectorType = null;
-
 	/**
 	 * @param {DOM Object} shapeDOM
 	 * @returns {Object} the Shape Data (id, classes, top, targetsIds...)
@@ -22,8 +20,6 @@ var flow = (function(flow, doc, jsPlumb) {
 
 			var id = conn.target.getAttribute('data-flow-shape-id');
 			shapeTargetConnections[id]  = {
-				style: conn.connector.type, // jsPlumb call this "type", we call "style"
-				type: conn.getParameter('connectorType'), // and this we call "type"
 				label: conn.getLabel()
 			};
 		}

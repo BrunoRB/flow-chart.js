@@ -105,52 +105,6 @@
 		border: @border-size solid @bright-color;
 		z-index: @z-index-moderate;
 
-		.flow.diagram.toolbar {
-			position: fixed;
-			right: 1.5%;
-			margin-top: 8%;
-			height: 253px;
-			border: 1px solid @bright-color;
-			z-index: @z-index-high;
-			background-color: @dark-color;
-			color: white;
-			border-radius: @border-radius;
-
-			input[type="radio"] {
-				position: absolute;
-				visibility: hidden;
-				z-index: @z-index-moderate;
-				display: block;
-
-				&:checked + label {
-					opacity: 1;
-					background-color: @bright-color;
-
-					&:first-of-type {
-						border-top-left-radius: @border-radius;
-						border-top-right-radius: @border-radius;
-					}
-					&:last-of-type {
-						border-bottom-left-radius: @border-radius;
-						border-bottom-right-radius: @border-radius;
-					}
-				}
-			}
-
-			label {
-				cursor: pointer;
-				display: block;
-				padding: 10px;
-				opacity: @low-opacity;
-
-				&:hover {
-					opacity: @medium-opacity;
-					background-color: @bright-color;
-				}
-
-			}
-		}
-
 		.connection.label {
 			font-weight: bold;
 			color: @bright-color;
@@ -172,11 +126,10 @@
 			position: absolute;
 			left: 0;
 			bottom: 100%;
-			border: 1px solid @dark-color;
-			border-bottom: 1px solid @bright-color;
-			background-color: white;
+			border-bottom: 2px solid @dark-color;
+			background-color: @dark-color;
+			color: white;
 			padding: 18px;
-			border-top-left-radius: @border-radius;
 			border-top-right-radius: @border-radius;
 		}
 

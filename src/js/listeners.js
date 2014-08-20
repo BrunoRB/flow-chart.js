@@ -12,8 +12,6 @@ var flow = (function(flow, doc, jsPlumb) {
 
 	Listeners.setupDiagramEvents = function(diagram) {
 		_shapeResizeListeners(diagram);
-
-		_diagramToolbarEvents(diagram);
 	};
 
 	var _shapeResizeListeners = function(diagram) {
@@ -124,23 +122,6 @@ var flow = (function(flow, doc, jsPlumb) {
 		Util.on(diagram, 'mouseup', function(event) {
 			this.removeEventListener('mousemove', _onMouseMove, false);
 			initiated = false;
-		});
-	};
-
-	var _diagramToolbarEvents = function(diagram) {
-		Util.on(diagram, 'change', '.flow.diagram.toolbar input[type="radio"]', function(event) {
-			var targetName = this.name;
-
-			if (targetName === 'connector-style') {
-				jsPlumb.Defaults.Connector = this.value;
-			}
-			else if (targetName === 'connector-type') {
-				var type = this.value;
-
-				jsPlumb.Defaults.ConnectionOverlays = flow.getConnectionOverlayByType(type);
-
-				flow.currentConnectorType = type;
-			}
 		});
 	};
 
