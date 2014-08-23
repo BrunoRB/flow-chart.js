@@ -131,12 +131,16 @@ var flow = (function(flow, doc, jsPlumb) {
 		for (var i=shapesArray.length; i--; ) {
 			var shapeData = shapesArray[i],
 				originalShape =  Cache.shapeMenu.querySelector('div[data-flow-shape-type="' + shapeData.type + '"]'),
-				clonedShape = originalShape.cloneNode(true);
+				clonedShape = originalShape.cloneNode(true),
+				clonedShapeImage = clonedShape.querySelector('.shape.image');
 
 			fragment.appendChild(clonedShape);
 
 			clonedShape.style.top = shapeData.top;
 			clonedShape.style.left = shapeData.left;
+
+			clonedShapeImage.style.height = shapeData.height;
+			clonedShapeImage.style.width = shapeData.width;
 
 			clonedShape.querySelector('code').textContent = shapeData.code;
 

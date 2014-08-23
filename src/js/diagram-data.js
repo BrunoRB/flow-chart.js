@@ -13,7 +13,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	 */
 	flow.getShapeData = function(shapeDOM) {
 		var connections = jsPlumb.getConnections({source: shapeDOM}),
-			shapeTargetConnections = {};
+			shapeTargetConnections = {},
+			shapeImage = shapeDOM.querySelector('.shape.image');
 
 		for (var i=connections.length; i--; ) {
 			var conn = connections[i];
@@ -30,7 +31,9 @@ var flow = (function(flow, doc, jsPlumb) {
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
 			code: shapeDOM.querySelector('code').textContent,
-			targetConnections: shapeTargetConnections
+			targetConnections: shapeTargetConnections,
+			width: shapeImage.style.width || null,
+			height: shapeImage.style.height || null
 		};
 	};
 
