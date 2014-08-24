@@ -21,6 +21,13 @@
     transition-delay: @time;
 }
 
+.transition-ease (@time) {
+	-webkit-transition: opacity @time ease;
+	-moz-transition: opacity @time ease;
+	-o-transition: opacity @time ease;
+	transition: opacity @time ease;
+}
+
 .rotate (@deg) {
 	-webkit-transform: rotate(@deg);
 	-moz-transform: rotate(@deg);

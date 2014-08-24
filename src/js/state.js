@@ -1,4 +1,3 @@
-"use strict";
 
 var flow = (function(flow) {
 	'use strict';

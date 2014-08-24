@@ -7,7 +7,7 @@
 			position: relative;
 			top: 20%;
 			bottom: 20%;
-			font-style: italic;
+			font-weight: 700;
 		}
 	}
 
@@ -27,38 +27,44 @@
 
 		a#create-new-flowchart {
 			background-color: @bright-color;
-			color: @dark-color;
 			width: 100%;
 			padding-left: 0;
 			padding-right: 0;
+			color: white;
 		}
 
 		div.flow.toolbar.list.container {
 			@padding: 10px;
-
-			margin-left: 20px;
-			margin-right: 20px;
-			font-size: large;
-
+			margin: 30px;
+			font-size: 150%;
 			&:hover {
-				i:first-child {
+				i {
+					text-decoration: underline;
 				}
-
-				ul.flow.toolbar.list li {
-					z-index: @z-index-absolute;
+				li {
+					margin-top: 3px;
+					list-style: disc;
 				}
 			}
 
 			ul.flow.toolbar.list {
 
 				li {
-					padding-left: 20px;
+					margin-left: 20px;
+				}
+
+				a {
+					color: @dark-color;
+					text-decoration: none;
+
+					&:hover {
+						text-decoration: underline;
+						color: @bright-color;
+					}
 				}
 			}
 		}
 
-		a {
-			text-decoration: none;
-		}
+
 	}
 }

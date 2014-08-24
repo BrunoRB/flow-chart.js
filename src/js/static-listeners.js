@@ -299,7 +299,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 flow.UI.openShapeInput(this);
             }
             else {
-                flow.Alerts.showErrorMessage('Elemento não pode conter texto');
+                flow.Alerts.showErrorMessage('This shape cannnot contain user input');
             }
         });
     };

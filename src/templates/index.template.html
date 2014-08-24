@@ -3,33 +3,45 @@
 	<head>
 		<title>flow-chart.js</title>
 
-		<script src="bower_components/jsPlumb/dist/js/dom.jsPlumb-1.6.4.js"></script>
+	<%
+	if (!isProduction) {
+	%>
+		<script src="../bower_components/jsPlumb/dist/js/dom.jsPlumb-1.6.2.js"></script>
 
-		<script src="src/js/util.js"></script>
-		<script src="src/js/cache.js"></script>
-		<script src="src/js/alerts.js"></script>
-		<script src="src/js/defaults.js"></script>
-		<script src="src/js/diagram-data.js"></script>
-		<script src="src/js/listeners.js"></script>
-		<script src="src/js/static-listeners.js"></script>
-		<script src="src/js/template.js"></script>
-		<script src="src/js/execution-handler.js"></script>
-		<script src="src/js/ui.js"></script>
-		<script src="src/js/constants.js"></script>
-		<script src="src/js/selection.js"></script>
-		<script src="src/js/nodes.js"></script>
-		<script src="src/js/flow-chart.js"></script>
-		<script src="src/js/init.js"></script>
+		<script src="js/util.js"></script>
+		<script src="js/cache.js"></script>
+		<script src="js/alerts.js"></script>
+		<script src="js/defaults.js"></script>
+		<script src="js/diagram-data.js"></script>
+		<script src="js/listeners.js"></script>
+		<script src="js/static-listeners.js"></script>
+		<script src="js/template.js"></script>
+		<script src="js/execution-handler.js"></script>
+		<script src="js/ui.js"></script>
+		<script src="js/constants.js"></script>
+		<script src="js/selection.js"></script>
+		<script src="js/nodes.js"></script>
+		<script src="js/flow-chart.js"></script>
+		<script src="js/init.js"></script>
 
-		<link rel="stylesheet" type="text/css" href="bower_components/components-font-awesome/css/font-awesome.css">
+		<link rel="stylesheet" type="text/css" href="../bower_components/components-font-awesome/css/font-awesome.css">
 
-		<link rel="stylesheet/less" type="text/css" href="src/css/index.less">
+		<link rel="stylesheet/less" type="text/css" href="css/index.less">
 
 		<script type="text/javascript">
 			var less = less || {};
 			less.env = 'development'; // avoid less crazy cache
 		</script>
-		<script src="bower_components/less/dist/less-1.7.0.js"></script> <!-- need to be after the stylesheets -->
+		<script src="../bower_components/less/dist/less-1.7.0.js"></script> <!-- need to be after the stylesheets -->
+	<%
+	}
+	else {
+		%>
+		<link rel="stylesheet" type="text/css" href="../bower_components/components-font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" type="text/css" href="css/flow-chart.min.css">
+	<%
+	}
+	%>
 	</head>
 	<body>
 		<a href="https://github.com/BrunoRB/flow-chart.js" target="_blank">
@@ -70,7 +82,7 @@
 			</section>
 
 			<section id="toolbar-container" class="flow toolbar menu">
-				<a id="create-new-flowchart" href="#" class="button fa fa-file-o"> New flowchart </a>
+				<a id="create-new-flowchart" href="#" class="button fa fa-plus"> New</a>
 				<div class="flow toolbar list container">
 					<i class="fa fa-folder-open-o"> Open </i>
 					<ul class="flow toolbar list open diagram">
@@ -99,10 +111,10 @@
 					<i class="fa fa-list fa-2x"></i>
 				</div>
 				<section class="console execution buttons">
-					<button class="button execute" disabled="disabled"><i class="fa fa-play-o"></i> Execute</button> <br>
-					<button class="button start debug" disabled="disabled"><i class="fa fa-play-circle"></i> Debug</button>
-					<button class="button debug next" disabled="disabled"><i class="fa fa-step-forward"></i></button>
-					<button class="button debug stop" disabled="disabled"><i class="fa fa-stop"></i></button>
+					<button class="button execute fa fa-play" disabled="disabled">Execute</button> <br>
+					<button class="button start debug fa fa-play-circle" disabled="disabled">Debug</button>
+					<button class="button debug next fa fa-step-forward" disabled="disabled"></button>
+					<button class="button debug stop fa fa-stop" disabled="disabled"></button>
 				</section>
 				<section class="console exhibition">
 					<span class="terminal">
@@ -118,6 +130,13 @@
 				</section>
 			</div>
 		</section>
-
+<%
+if (isProduction) {
+%>
+	<script src="../bower_components/jsPlumb/dist/js/dom.jsPlumb-1.6.2-min.js"></script>
+	<script src="js/flow-chart.min.js"></script>
+<%
+}
+%>
 	</body>
 </html>

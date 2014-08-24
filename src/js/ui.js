@@ -6,6 +6,7 @@ flow.UI = {
 
     appendContentToConsole: function(text) {
         flow.Cache.consoleExhibitionContent.insertAdjacentHTML('beforeEnd', "<code>" + text + "</code><br>");
+		flow.Cache.consoleExhibition.scrollTop = flow.Cache.consoleExhibition.scrollHeight;
     },
 
     cleanConsoleContent: function() {

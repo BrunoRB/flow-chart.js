@@ -3,9 +3,13 @@
 	"version": "0.0.1",
 	"author": "BrunoRB",
 	"devDependencies": {
-		"grunt": "~0.4.1",
+		"grunt": "latest",
 		"grunt-contrib-less": "latest",
+		"grunt-contrib-concat": "latest",
+		"grunt-contrib-htmlmin": "latest",
 		"grunt-plato": "latest",
+		"grunt-contrib-less": "latest",
+		"grunt-contrib-uglify" : "latest",
 		"grunt-contrib-clean" : "latest"
 	}
 }

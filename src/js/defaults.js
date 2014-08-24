@@ -10,7 +10,6 @@ var flow = (function(flow, jsPlumb) {
 	var _uiDefaults = function() {
 		// diagram height
 		var containerStyle = flow.Cache.diagramContainer.style,
-			consoleStyle = flow.Cache.consoleArea.style,
 			tabMenuHeight = window.getComputedStyle(
 				flow.Cache.diagramContainer.querySelector('.flow.tab.menu')
 			).getPropertyValue('height'),
@@ -21,7 +20,7 @@ var flow = (function(flow, jsPlumb) {
 		window.onresize = function(event) {
 			windowHeight = window.innerHeight;
 			containerStyle.height =
-				windowHeight - parseInt(tabMenuHeight, 10) - parseInt(consoleStyle.height, 10) + 'px';
+				windowHeight - parseInt(tabMenuHeight, 10) + 'px';
 		};
 
 		//TODO manual_input and display drawings
@@ -31,11 +30,11 @@ var flow = (function(flow, jsPlumb) {
 			manualInputSpan = shapeMenu.querySelector('div.shape.manual_input .shape.image'),
 			manualInputNewImg = document.createElement('img');
 
-		displayNewImg.src = 'src/img/display.gif';
+		displayNewImg.src = '../src/img/display.gif';
 		displayNewImg.className = 'shape image';
 		displaySpan.parentNode.replaceChild(displayNewImg, displaySpan);
 
-		manualInputNewImg.src = 'src/img/manual_input.png';
+		manualInputNewImg.src = '../src/img/manual_input.png';
 		manualInputNewImg.className = 'shape image';
 		manualInputSpan.parentNode.replaceChild(manualInputNewImg, manualInputSpan);
 	};

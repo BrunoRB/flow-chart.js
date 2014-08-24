@@ -1,0 +1,545 @@
+.unselectable {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+._jsPlumb_connector:hover {
+  cursor: pointer;
+  opacity: 0.7;
+}
+._jsPlumb_endpoint,
+._jsPlumb_dragging {
+  cursor: move !important;
+  z-index: 999;
+  /* bypass overlay z-index*/
+}
+.source-anchor {
+  visibility: hidden;
+  cursor: default;
+  z-index: -1;
+}
+.flow.active.diagram > .flow.shape {
+  position: absolute;
+}
+.flow.active.diagram > .flow.shape:hover {
+  border: 1px dashed #00b5ad;
+}
+.flow.active.diagram > .flow.shape:hover:not(.end) .connector,
+.flow.active.diagram > .flow.shape:hover .resize.anchor {
+  visibility: visible;
+  z-index: 10;
+  -webkit-transition-delay: 0ms;
+  -moz-transition-delay: 0ms;
+  -ms-transition-delay: 0ms;
+  -o-transition-delay: 0ms;
+  transition-delay: 0ms;
+}
+.flow.active.diagram > .flow.shape .resize.anchor,
+.flow.active.diagram > .flow.shape .connector {
+  position: absolute;
+  visibility: hidden;
+  height: 10px;
+  width: 10px;
+  border-radius: 2px;
+  -webkit-transition-delay: 1s;
+  -moz-transition-delay: 1s;
+  -ms-transition-delay: 1s;
+  -o-transition-delay: 1s;
+  transition-delay: 1s;
+}
+.flow.active.diagram > .flow.shape .resize.anchor.top.left {
+  bottom: 100%;
+  right: 100%;
+  -webkit-transform: rotate(-35deg);
+  -moz-transform: rotate(-35deg);
+  -ms-transform: rotate(-35deg);
+  -o-transform: rotate(-35deg);
+  transform: rotate(-35deg);
+  cursor: nw-resize;
+}
+.flow.active.diagram > .flow.shape .resize.anchor.top.right {
+  bottom: 100%;
+  left: 100%;
+  -webkit-transform: rotate(35deg);
+  -moz-transform: rotate(35deg);
+  -ms-transform: rotate(35deg);
+  -o-transform: rotate(35deg);
+  transform: rotate(35deg);
+  cursor: ne-resize;
+}
+.flow.active.diagram > .flow.shape .resize.anchor.bottom.left {
+  top: 100%;
+  right: 100%;
+  -webkit-transform: rotate(35deg);
+  -moz-transform: rotate(35deg);
+  -ms-transform: rotate(35deg);
+  -o-transform: rotate(35deg);
+  transform: rotate(35deg);
+  cursor: sw-resize;
+}
+.flow.active.diagram > .flow.shape .resize.anchor.bottom.right {
+  top: 100%;
+  left: 100%;
+  -webkit-transform: rotate(-35deg);
+  -moz-transform: rotate(-35deg);
+  -ms-transform: rotate(-35deg);
+  -o-transform: rotate(-35deg);
+  transform: rotate(-35deg);
+  cursor: se-resize;
+}
+.flow.active.diagram > .flow.shape .connector {
+  border: 1px solid black;
+}
+.flow.active.diagram > .flow.shape .connector.one {
+  bottom: 100%;
+  left: 45%;
+}
+.flow.active.diagram > .flow.shape .connector.two {
+  top: 100%;
+  left: 45%;
+}
+.flow.active.diagram > .flow.shape .connector.three {
+  top: 40%;
+  right: 100%;
+}
+.flow.active.diagram > .flow.shape .connector.four {
+  top: 40%;
+  left: 100%;
+}
+.flow.active.diagram > .flow.shape code,
+.flow.active.diagram > .flow.shape input {
+  font-family: monospace;
+  position: absolute !important;
+  top: 30%;
+  bottom: 30%;
+  left: 5%;
+  right: 5%;
+  word-break: break-all;
+  min-height: 15px;
+  z-index: 1000;
+}
+.flow.active.diagram > .flow.shape input {
+  width: 90%;
+}
+.flow.active.diagram > .flow.shape code {
+  bottom: 5%;
+}
+.flow.shape.menu .flow.shape {
+  cursor: move;
+  display: inline-block;
+  margin: 15px;
+}
+.flow.shape.menu .flow.shape *:not(.image) {
+  display: none;
+}
+.flow.shape.menu .flow.shape .shape.image {
+  width: 50px;
+  height: 25px;
+  border: 1px solid black;
+}
+.flow.shape.menu .flow.shape.decision .shape.image,
+.flow.shape.menu .flow.shape.connector .shape.image {
+  width: 30px;
+  height: 30px;
+}
+.flow.shape {
+  text-align: center;
+  outline: none;
+}
+.flow.shape .shape.image {
+  position: relative;
+  border: 2px solid black;
+  display: block;
+}
+.flow.shape.selected .shape.image {
+  border-color: #9ecaed;
+  box-shadow: 0 0 40px #00b5ad;
+  z-index: 1000;
+}
+.flow.shape.executed .shape.image {
+  border-color: green;
+  box-shadow: 0px 0px 40px green;
+}
+.flow.shape.invalid .shape.image {
+  border-color: #D95C5C;
+  box-shadow: 0 0 40px #D95C5C;
+}
+.flow.shape.begin .shape.image,
+.flow.shape.end .shape.image,
+.flow.shape.process .shape.image,
+.flow.shape.display .shape.image,
+.flow.shape.manual_input .shape.image {
+  width: 100px;
+  height: 50px;
+}
+.flow.shape.begin .shape.image,
+.flow.shape.end .shape.image {
+  border-radius: 30px;
+}
+.flow.shape.end .shape.image {
+  background-color: #000000;
+}
+.flow.shape.connector {
+  visibility: visible !important;
+}
+.flow.shape.connector .shape.image {
+  border-radius: 50%;
+}
+.flow.shape.decision .shape.image,
+.flow.shape.connector .shape.image {
+  width: 60px;
+  height: 60px;
+}
+.flow.shape.decision .shape.image {
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+.flow.shape.decision .shape.image input,
+.flow.shape.decision .shape.image code {
+  -webkit-transform: rotate(-45deg);
+  -moz-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  -o-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+.flow.shape.display .shape.image,
+.flow.shape.manual_input .shape.image {
+  border: none !important;
+}
+.flow.shape .resize.anchor,
+.flow.shape .connector {
+  visibility: hidden;
+}
+#left-area {
+  /** Can't be absolute or relative, it will force overflow when you try to drag shapes out ! */
+}
+#left-area .flow.logo {
+  height: 40px;
+  text-align: center;
+  width: 15%;
+}
+#left-area .flow.logo h1 {
+  position: relative;
+  top: 20%;
+  bottom: 20%;
+  font-weight: 700;
+}
+#left-area .flow.shape.menu {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: static;
+  height: 250px;
+  border: 1px solid #00b5ad;
+  width: 15%;
+  overflow: hidden;
+}
+#left-area .flow.toolbar.menu {
+  width: 15%;
+}
+#left-area .flow.toolbar.menu a#create-new-flowchart {
+  background-color: #00b5ad;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  color: white;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container {
+  margin: 30px;
+  font-size: 150%;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container:hover i {
+  text-decoration: underline;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container:hover li {
+  margin-top: 3px;
+  list-style: disc;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container ul.flow.toolbar.list li {
+  margin-left: 20px;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container ul.flow.toolbar.list a {
+  color: #000000;
+  text-decoration: none;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container ul.flow.toolbar.list a:hover {
+  text-decoration: underline;
+  color: #00b5ad;
+}
+#right-area.flow.diagram.container {
+  width: 85%;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#right-area.flow.diagram.container #alert-messages {
+  position: fixed;
+  top: 10%;
+  right: 4%;
+  opacity: 0;
+  height: 80px;
+  width: 200px;
+  margin: 10px;
+  border-radius: 10px;
+  text-align: center;
+  font-family: monospace;
+  font-size: large;
+  font-weight: bold;
+  z-index: 1000;
+}
+#right-area.flow.diagram.container #alert-messages span {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  top: 10%;
+  bottom: 10%;
+}
+#right-area.flow.diagram.container #alert-messages[data-flow-message-type="info"] {
+  box-shadow: 0 0 10px #00b5ad;
+}
+#right-area.flow.diagram.container #alert-messages[data-flow-message-type="warning"] {
+  box-shadow: 0 0 10px #e25657;
+}
+#right-area.flow.diagram.container #alert-messages[data-flow-message-type="success"] {
+  box-shadow: 0 0 10px #008000;
+}
+#right-area.flow.diagram.container #alert-messages[data-flow-message-type="error"] {
+  box-shadow: 0 0 10px #e25657;
+}
+#right-area.flow.diagram.container .flow.tab.menu {
+  position: relative;
+  margin: 10px 0 0 0;
+  height: 40px;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item {
+  position: relative;
+  display: inline;
+  padding: 10px 20px 10px 20px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item a.flow.tab.link {
+  position: relative;
+  text-decoration: none;
+  color: #000000;
+  padding-left: 2%;
+  padding-right: 2%;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item a.flow.tab.link:hover {
+  cursor: pointer;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item .flow.tab.close {
+  color: #e25657;
+  position: absolute;
+  top: -5px;
+  right: 5px;
+  font-size: 24px;
+  font-weight: bold;
+  font-style: italic;
+  opacity: 0.6;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item .flow.tab.close:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item:not(.active) {
+  opacity: 0.6;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item:not(.active):hover {
+  opacity: 1;
+}
+#right-area.flow.diagram.container .flow.tab.menu .flow.tab.item.active {
+  border: 2px solid #00b5ad;
+  border-bottom: 6px solid white;
+  z-index: 100;
+}
+#right-area.flow.diagram.container .flow.active.diagram {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+  position: absolute;
+  top: 40px;
+  height: 100%;
+  width: 100%;
+  overflow: scroll;
+  border: 2px solid #00b5ad;
+  z-index: 10;
+}
+#right-area.flow.diagram.container .flow.active.diagram .connection.label {
+  font-weight: bold;
+  color: #00b5ad;
+  font-size: large;
+  position: absolute;
+}
+#right-area.flow.diagram.container #console-area {
+  position: fixed;
+  width: 85%;
+  border: 1px solid #00b5ad;
+  background-color: white;
+  bottom: 0;
+  z-index: 1000;
+  height: 0;
+}
+#right-area.flow.diagram.container #console-area .console.toggle.button {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  border-bottom: 2px solid #000000;
+  background-color: #000000;
+  color: white;
+  padding: 18px;
+  border-top-right-radius: 10px;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  float: left;
+  width: 40%;
+  border-right: 1px solid black;
+  height: 100%;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button {
+  margin: 20px 10px 10px 20px;
+  border-radius: 2px;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.execute,
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.start.debug {
+  background-color: #00b5ad;
+  width: 200px;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.debug.next,
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.stop.debug {
+  height: 40px;
+  width: 40px;
+  background-color: white;
+  border: 1px solid gray;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.debug.next:before,
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.stop.debug:before {
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 30%;
+  bottom: 30%;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.debug.next {
+  color: #00b5ad;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button.stop.debug {
+  color: #e25657;
+}
+#right-area.flow.diagram.container #console-area .console.execution.buttons button i {
+  left: 1%;
+  width: 20px;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition {
+  float: left;
+  width: 40%;
+  border-right: 1px solid black;
+  height: 100%;
+  overflow-y: scroll;
+  padding: 1%;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition .terminal {
+  position: fixed;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition .clean.console {
+  color: #e25657;
+  position: fixed;
+  left: 82%;
+  cursor: pointer;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition .clean.console:hover {
+  opacity: 0.8;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition .content {
+  margin-bottom: 10%;
+  padding-left: 10%;
+  line-height: 150%;
+}
+#right-area.flow.diagram.container #console-area .console.exhibition .content code:last-of-type:before {
+  content: '-';
+}
+* {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+body {
+  overflow: hidden;
+}
+.button,
+button {
+  cursor: pointer;
+  text-align: center;
+  border: none;
+  border: 0;
+  padding: 1em 2em;
+  text-decoration: none;
+  position: relative;
+  outline: none;
+  text-transform: uppercase;
+  font-size: 105%;
+  background-color: #898989;
+  color: white;
+}
+.button i,
+button i {
+  top: 0;
+  left: 0;
+  text-align: center;
+  display: inline-block;
+}
+.button:before,
+button:before {
+  position: relative;
+  left: -5%;
+}
+.button:hover,
+button:hover {
+  opacity: 0.90;
+  -webkit-transition: opacity 0.5s ease;
+  -moz-transition: opacity 0.5s ease;
+  -o-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+}
+.button:active,
+button:active {
+  opacity: 0.80;
+  -webkit-transition: opacity 0.1s ease;
+  -moz-transition: opacity 0.1s ease;
+  -o-transition: opacity 0.1s ease;
+  transition: opacity 0.1s ease;
+}
+.button[disabled],
+button[disabled] {
+  background-color: gray !important;
+  color: white !important;
+  opacity: 0.7;
+}
+::-webkit-scrollbar {
+  width: 12px;
+}
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px #00b5ad;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  background: #00b5ad;
+  -webkit-box-shadow: inset 0 0 6px #00b5ad;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+  background: rgba(255, 0, 0, 0.4);
+}

@@ -136,32 +136,38 @@
 		.console.execution.buttons {
 			.unselectable();
 			float: left;
-			width: 36%;
+			width: 40%;
 			border-right: 1px solid black;
 			height: 100%;
 
 			button {
-				font-family: monospace;
-				margin: 20px;
+				margin: 20px 10px 10px 20px;
 				border-radius: 2px;
 
 				&.execute, &.start.debug {
 					background-color: @bright-color;
-					height: 40px;
-					width: 150px;
-
+					width: 200px;
 				}
 
 				&.debug.next, &.stop.debug {
 					height: 40px;
 					width: 40px;
 					background-color: white;
+					border: 1px solid gray;
+
+					&:before {
+						position: absolute;
+						left: 30%;
+						right: 30%;
+						top: 30%;
+						bottom: 30%;
+					}
 				}
 
-				&.debug.next i {
+				&.debug.next {
 					color: @bright-color;
 				}
-				&.stop.debug i {
+				&.stop.debug {
 					color: @danger-color;
 				}
 
@@ -174,7 +180,7 @@
 
 		.console.exhibition {
 			float: left;
-			width: 36%;
+			width: 40%;
 			border-right: 1px solid black;
 			height: 100%;
 			overflow-y: scroll;
@@ -186,15 +192,20 @@
 			.clean.console {
 				color: @danger-color;
 				position: fixed;
-				left: 68%;
+				left: 82%;
 				cursor: pointer;
 				&:hover {
 					opacity: @medium-opacity;
 				}
 			}
 			.content {
-				margin-bottom: 15%;
+				margin-bottom: 10%;
 				padding-left: 10%;
+				line-height: 150%;
+
+				code:last-of-type:before {
+					content: '-';
+				}
 			}
 		}
 	}

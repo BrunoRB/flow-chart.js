@@ -91,7 +91,7 @@
 		left: 5%;
 		right: 5%;
 		word-break: break-all;
-		min-height: 20px;
+		min-height: 15px;
 		z-index: @z-index-absolute;
 	}
 
@@ -115,13 +115,14 @@
 	}
 
 	& .shape.image {
-		width: @general-shape-width / 2.5;
-		height: @general-shape-height / 2.5;
+		width: @general-shape-width / 2;
+		height: @general-shape-height / 2;
+		border: 1px solid black;
 	}
 
 	&.decision .shape.image, &.connector .shape.image {
-		width: 60px / 2.5;
-		height: 60px / 2.5;
+		width: 60px / 2;
+		height: 60px / 2;
 	}
 }
 
@@ -131,7 +132,7 @@
 
 	.shape.image {
 		position: relative;
-		border: 1px solid black;
+		border: 2px solid black;
 		display: block;
 	}
 
@@ -185,7 +186,7 @@
 	}
 
 	&.display .shape.image, &.manual_input .shape.image {
-		border: none;
+		border: none !important;
 	}
 }
 
