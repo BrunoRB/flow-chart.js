@@ -86,10 +86,12 @@
 	code, input {
 		font-family: monospace;
 		position: absolute !important;
-		top: 5%;
+		top: 30%;
+		bottom: 30%;
 		left: 5%;
 		right: 5%;
 		word-break: break-all;
+		min-height: 20px;
 		z-index: @z-index-absolute;
 	}
 
@@ -113,13 +115,13 @@
 	}
 
 	& .shape.image {
-		width: @general-shape-width / 2;
-		height: @general-shape-height / 2;
+		width: @general-shape-width / 2.5;
+		height: @general-shape-height / 2.5;
 	}
 
 	&.decision .shape.image, &.connector .shape.image {
-		width: 60px / 2;
-		height: 60px / 2;
+		width: 60px / 2.5;
+		height: 60px / 2.5;
 	}
 }
 

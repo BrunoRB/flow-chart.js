@@ -11,8 +11,7 @@ var flow = (function(flow, doc, jsPlumb) {
 		Util = flow.Util;
 
 	StaticListeners._createDiagramClick = function() {
-		var delegateSelector = '.flow.create a';
-		Util.on(Cache.toolbarContainer, 'click', delegateSelector, function(event) {
+		Util.on(Cache.toolbarContainer, 'click', '#create-new-flowchart', function(event) {
 			event.preventDefault();
 
 			// target.href comes with domain url
@@ -225,8 +224,7 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._consoleToggleButtonClick = function() {
 		var interval = null;
 		Cache.consoleToggle.addEventListener('click', function(event) {
-			var consoleArea = Cache.consoleArea,
-				containerStyle = Cache.diagramContainer.style;
+			var consoleArea = Cache.consoleArea;
 
 			window.clearInterval(interval);
 
@@ -238,8 +236,7 @@ var flow = (function(flow, doc, jsPlumb) {
 				interval = setInterval(function() {
 					var height = parseInt(consoleArea.style.height, 10);
 					if (height > 0) {
-						consoleArea.style.height = height - 10 + 'px';
-						containerStyle.height = parseInt(containerStyle.height, 10) + 10  + 'px';
+						consoleArea.style.height = height - 15 + 'px';
 					}
 					else {
 						window.clearInterval(interval);
@@ -250,8 +247,7 @@ var flow = (function(flow, doc, jsPlumb) {
 				interval = setInterval(function() {
 					var height = parseInt(consoleArea.style.height, 10);
 					if (height < 200) {
-						consoleArea.style.height = height + 10 + 'px';
-						containerStyle.height = parseInt(containerStyle.height, 10) - 10  + 'px';
+						consoleArea.style.height = height + 15 + 'px';
 					}
 					else {
 						window.clearInterval(interval);
