@@ -79,6 +79,8 @@ var flow = (function(flow, doc, jsPlumb) {
 			_userStoredDiagrams.diagrams[current.id] = flow.getDiagramData(current); // add currentDiagram data
 		}
 
+		_userStoredDiagrams.data.count = flow.Util.count; // last counter is stored in order to prevent id duplication !
+
 		return _userStoredDiagrams;
 	};
 

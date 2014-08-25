@@ -370,6 +370,8 @@ var flow = (function(flow, doc, jsPlumb) {
 			_userStoredDiagrams.diagrams[current.id] = flow.getDiagramData(current); // add currentDiagram data
 		}
 
+		_userStoredDiagrams.data.count = flow.Util.count; // last counter is stored in order to prevent id duplication !
+
 		return _userStoredDiagrams;
 	};
 
@@ -1905,6 +1907,9 @@ var flow = (function(flow, doc, jsPlumb) {
 	flow.openDiagrams = function(jsonDataAsText) {
 		var data = JSON.parse(jsonDataAsText),
 			diagrams = data.diagrams;
+
+		flow.Util.count = data.data.count + 1; // this prevents ID duplication !
+
 		for (var key in diagrams) {
 			var diagramData = diagrams[key];
 			flow.storeDiagramData(diagramData);
