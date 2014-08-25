@@ -227,6 +227,11 @@
   top: 20%;
   bottom: 20%;
   font-weight: 700;
+  font-size: x-large;
+}
+#left-area .flow.logo h1 a {
+  text-decoration: none;
+  color: black;
 }
 #left-area .flow.shape.menu {
   -moz-user-select: none;
@@ -272,6 +277,10 @@
   color: #00b5ad;
 }
 #right-area.flow.diagram.container {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
   width: 85%;
   position: absolute;
   top: 0;
@@ -359,10 +368,6 @@
   z-index: 100;
 }
 #right-area.flow.diagram.container .flow.active.diagram {
-  -moz-user-select: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
   outline: none;
   position: absolute;
   top: 40px;
@@ -403,7 +408,7 @@
   -ms-user-select: none;
   user-select: none;
   float: left;
-  width: 40%;
+  width: 42%;
   border-right: 1px solid black;
   height: 100%;
 }
