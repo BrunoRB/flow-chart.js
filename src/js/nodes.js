@@ -218,7 +218,7 @@ var flow = (function(flow, jsPlumb) {
 			var connections = jsPlumb.getConnections({source: this.selector});
 
 			if (isTrue === true) {
-				if (/verdadeiro/i.test(connections[0].getLabel())) {
+				if (/true/i.test(connections[0].getLabel())) {
 					return connections[0].target;
 				}
 				else {
@@ -226,7 +226,7 @@ var flow = (function(flow, jsPlumb) {
 				}
 			}
 			else if(isTrue === false){
-				if (/verdadeiro/i.test(connections[0].getLabel())) {
+				if (/true/i.test(connections[0].getLabel())) {
 					return connections[1].target;
 				}
 				else {

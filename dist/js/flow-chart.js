@@ -803,10 +803,12 @@ var flow = (function(flow, doc, jsPlumb) {
                 flow.Selection.deleteSelectedItems();
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
-                flow.State.revert(flowchart);
+                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
+				//flow.State.revert(flowchart);
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
-                flow.State.undoRevert(flowchart);
+                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
+                //flow.State.undoRevert(flowchart);
             }
         });
     };
@@ -880,7 +882,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else if (conn.length > 0) {
-                flow.Alerts.showWarningMessage('Duplicate connections isn\'t allowed');
+                flow.Alerts.showWarningMessage('Duplicate connections aren\'t allowed');
                 return false;
             }
             else {
@@ -1758,7 +1760,7 @@ var flow = (function(flow, jsPlumb) {
 			var connections = jsPlumb.getConnections({source: this.selector});
 
 			if (isTrue === true) {
-				if (/verdadeiro/i.test(connections[0].getLabel())) {
+				if (/true/i.test(connections[0].getLabel())) {
 					return connections[0].target;
 				}
 				else {
@@ -1766,7 +1768,7 @@ var flow = (function(flow, jsPlumb) {
 				}
 			}
 			else if(isTrue === false){
-				if (/verdadeiro/i.test(connections[0].getLabel())) {
+				if (/true/i.test(connections[0].getLabel())) {
 					return connections[1].target;
 				}
 				else {
