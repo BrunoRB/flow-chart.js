@@ -146,6 +146,7 @@
 .flow.shape {
   text-align: center;
   outline: none;
+  background-color: white;
 }
 .flow.shape .shape.image {
   position: relative;
@@ -383,6 +384,12 @@
   font-size: large;
   position: absolute;
 }
+#right-area.flow.diagram.container .flow.active.diagram .hidden-anchor {
+  position: absolute;
+  top: 300%;
+  left: 300%;
+  visibility: hidden;
+}
 #right-area.flow.diagram.container #console-area {
   position: fixed;
   width: 85%;
@@ -481,6 +488,9 @@
 }
 body {
   overflow: hidden;
+}
+i:before {
+  margin-right: 5px;
 }
 .button,
 button {
