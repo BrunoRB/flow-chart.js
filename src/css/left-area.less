@@ -1,0 +1,75 @@
+#left-area {
+	.flow.logo {
+		height: @tab-menu-height;
+		text-align: center;
+		width: 100 - @digram-container-width-percentage;
+		h1 {
+			position: relative;
+			top: 20%;
+			bottom: 20%;
+			font-weight: 700;
+			font-size: x-large;
+			a {
+				text-decoration: none;
+				color: black;
+			}
+		}
+	}
+
+	/** Can't be absolute or relative, it will force overflow when you try to drag shapes out ! */
+	.flow.shape.menu {
+		.unselectable();
+
+		position: static;
+		height: 250px;
+		border: 1px solid @bright-color;
+		width: 100 - @digram-container-width-percentage;
+		overflow: hidden;
+	}
+
+	.flow.toolbar.menu {
+		width: 100 - @digram-container-width-percentage;
+
+		a#create-new-flowchart {
+			background-color: @bright-color;
+			width: 100%;
+			padding-left: 0;
+			padding-right: 0;
+			color: white;
+		}
+
+		div.flow.toolbar.list.container {
+			@padding: 10px;
+			margin: 30px;
+			font-size: 150%;
+			&:hover {
+				i {
+					text-decoration: underline;
+				}
+				li {
+					margin-top: 3px;
+					list-style: disc;
+				}
+			}
+
+			ul.flow.toolbar.list {
+
+				li {
+					margin-left: 20px;
+				}
+
+				a {
+					color: @dark-color;
+					text-decoration: none;
+
+					&:hover {
+						text-decoration: underline;
+						color: @bright-color;
+					}
+				}
+			}
+		}
+
+
+	}
+}
