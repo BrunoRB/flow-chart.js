@@ -171,7 +171,9 @@ var flow = (function(flow, doc, jsPlumb) {
 
 			parent.removeChild(this);
 
-			parent.insertAdjacentHTML('beforeEnd', '<input id="flow-temp-change-name" type="text" />');
+			parent.insertAdjacentHTML(
+				'beforeEnd', '<input id="flow-temp-change-name" type="text" value="' + oldName + '" />'
+			);
 			newInput = parent.querySelector('#flow-temp-change-name');
 			newInput.focus();
 
@@ -332,9 +334,14 @@ var flow = (function(flow, doc, jsPlumb) {
 		});
 	};
 
-	StaticListeners._shapeMoved = function() {
-		var ev = flow.Const.MOVED;
+	StaticListeners._shapeAltered = function() {
+		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
+			var shape = event.target,
+				left = shape.style.left,
+				top = shape.style.top,
+				code = shape.querySelector('code').textContent;
+
 			//TODO
 		});
 	};

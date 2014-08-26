@@ -27,6 +27,7 @@ var flow = (function(flow) {
 
 		return '<div id="' + id + '" class="flow active diagram" title="' + diagramName + '" ' +
 			'data-flow-name="' + diagramName + '" tabindex="-1">' +
+			'<span class="hidden-anchor" tabindex="-1">Anchor</span>' +
 		'</div>';
 	};
 

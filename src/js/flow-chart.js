@@ -57,6 +57,9 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		var newDiagram = flow.getCurrentDiagram();
 
+		newDiagram.scrollTop = newDiagram.scrollHeight / 3.5;
+		newDiagram.scrollLeft = newDiagram.scrollWidth / 3.5;
+
 		jsPlumb.setContainer(newDiagram); // set jsplumb container
 
 		_makeDiagramDroppable(newDiagram); // let the user drop the shapes from menu on this new
@@ -153,6 +156,11 @@ var flow = (function(flow, doc, jsPlumb) {
 		}
 		diagram.appendChild(fragment);
 
+		var beginShape = diagram.querySelector('.begin');
+		if (beginShape) {
+			beginShape.focus(); // always start focusing the begin el
+		}
+
 		// then make the connections
 		jsPlumb.setSuspendDrawing(true);
 
@@ -206,15 +214,16 @@ var flow = (function(flow, doc, jsPlumb) {
 		k.droppable(diagram, {
 			scope: 'dragFromMenu',
 			drop:function(params) {
-				var baseShape = params.drag.el,
+				var flowchart = params.drop.el,
+					baseShape = params.drag.el,
 					maxAllowedCopies = parseInt(baseShape.getAttribute('data-flow-max-copies'), 10),
 					type = baseShape.getAttribute('data-flow-shape-type');
 
 				if (maxAllowedCopies === -1 || _getAmountOfShapesInDiagram(diagram, type) < maxAllowedCopies) {
 					var shapeClone = baseShape.cloneNode(true);
 
-					shapeClone.style.left = params.e.layerX + 'px'; // TODO scroll
-					shapeClone.style.top = params.e.layerY + 'px'; // TODO scroll
+					shapeClone.style.left = params.e.layerX + flowchart.scrollLeft + 'px';
+					shapeClone.style.top = params.e.layerY + flowchart.scrollTop + 'px';
 
 					diagram.appendChild(shapeClone);
 
@@ -242,7 +251,10 @@ var flow = (function(flow, doc, jsPlumb) {
 			//consumeFilteredEvents: true
 			start: function(params) {
 				var shape = params.el;
+
 				flow.Selection.addSelectedShape(shape);
+
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
 			}
 		});
 
