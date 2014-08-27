@@ -46,7 +46,7 @@ module.exports = function(grunt) {
 		concat: {
             flowchart: {
                 src: [
-                    'src/js/util.js', 'src/js/cache.js', 'src/js/alerts.js', 'src/js/defaults.js',
+                    'src/js/util.js', 'src/js/state.js', 'src/js/cache.js', 'src/js/alerts.js', 'src/js/defaults.js',
 					'src/js/diagram-data.js',
 					'src/js/listeners.js', 'src/js/static-listeners.js', 'src/js/template.js',
 					'src/js/execution-handler.js', 'src/js/ui.js', 'src/js/constants.js', 'src/js/selection.js',

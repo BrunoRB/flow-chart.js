@@ -19,20 +19,20 @@ var flow = (function(flow) {
 	};
 
 	Const.DIAGRAM_EVENT = {
-		LOADED: 'loaded'
+		LOADED: 'diagram_loaded'
 	};
 
 	Const.SHAPE_EVENT = {
-		SELECTED: 'selected',
-		MOVED: 'moved',
-		DELETED: 'deleted',
-		ALTERATED: 'altered',
-		CREATED: 'created'
+		SELECTED: 'shape_selected',
+		MOVED: 'shape_moved',
+		DELETED: 'shape_deleted',
+		ALTERATED: 'shape_altered',
+		CREATED: 'shape_created'
 	};
 
 	Const.CONNECTION_EVENT = {
-		ALTERED: 'altered',
-		SELECTED: 'selected'
+		ALTERED: 'connection_altered',
+		SELECTED: 'connection_selected'
 	};
 
 	Const.CONNECTION_TYPE = {

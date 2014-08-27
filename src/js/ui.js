@@ -181,7 +181,7 @@ flow.UI = {
 			inputEl = null;
 
 		codeEl = shape.querySelector('code');
-		oldText = codeEl.textContent;
+		oldText = codeEl.textContent.replace(/"/g, '&quot;'); // escape quotes
 
         codeEl.outerHTML = flow.Templates.getShapeInnerInput(oldText);
 
@@ -206,7 +206,13 @@ flow.UI = {
         });
 
 		var _removeInputFocus = function(event) {
-            this.outerHTML = flow.Templates.getShapeInnerCode(this.value); //Hidden again
+			var newText = this.value;
+
+			if (newText !== oldText) {
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			}
+
+            this.outerHTML = flow.Templates.getShapeInnerCode(newText); //Hidden again
 		};
     },
 

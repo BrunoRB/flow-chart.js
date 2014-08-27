@@ -21,6 +21,7 @@
 }
 .flow.active.diagram > .flow.shape {
   position: absolute;
+  background-color: white;
 }
 .flow.active.diagram > .flow.shape:hover {
   border: 1px dashed #00b5ad;
@@ -146,7 +147,6 @@
 .flow.shape {
   text-align: center;
   outline: none;
-  background-color: white;
 }
 .flow.shape .shape.image {
   position: relative;

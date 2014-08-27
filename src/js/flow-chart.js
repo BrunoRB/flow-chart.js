@@ -37,6 +37,10 @@ var flow = (function(flow, doc, jsPlumb) {
 		};
 	})();
 
+	flow.findShapeById = function(idShape) {
+		return flow.getCurrentDiagram().querySelector('div.shape[data-flow-shape-id="' + idShape + '"]');
+	};
+
 	/**
 	 * Creates a new diagram and append it to DOM.
 	 *
@@ -255,6 +259,26 @@ var flow = (function(flow, doc, jsPlumb) {
 				flow.Selection.addSelectedShape(shape);
 
 				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			},
+			drag: function(params) {
+				return 'TODO';
+
+				var shape = params.el,
+					flowchart = shape.parentNode,
+					left = parseInt(shape.style.left, 10) + shape.offsetWidth,
+					top = parseInt(shape.style.top, 10) + shape.offsetHeight,
+					flowchartHeight = flowchart.offsetHeight,
+					flowchartWidth = flowchart.offsetWidth,
+					flowchartScrollLeft = flowchart.scrollLeft,
+					flowchartScrollTop = flowchart.scrollTop,
+					flowchartBottomBorder = flowchartHeight + flowchart.scrollTop;
+
+
+				if (top >= flowchartBottomBorder) {
+					flowchart.scrollTop = flowchartScrollTop + (top - flowchartBottomBorder) * 4;
+				}
+
+				//TODO
 			}
 		});
 

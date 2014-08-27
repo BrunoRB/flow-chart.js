@@ -2,22 +2,20 @@
 var flow = (function(flow) {
 	'use strict';
 
-	var Const = flow.Const,
-		Util = flow.Util,
+	var Util = flow.Util,
 		_revert = [],
 		_undoRevert = [];
 
 	flow.State = {
 		cleanState: function() {
-			this._revert = [];
-			this._undoRevert = [];
+			_revert = [];
+			_undoRevert = [];
 		},
 
 		pushShapeAlteration: function(shape) {
 			var obj = {};
-			obj[Const.SHAPE_EVENT.ALTERATED] = flow.getShapeData(shape);
-
-			this._revert.push(obj);
+			obj[flow.Const.SHAPE_EVENT.ALTERATED] = flow.getShapeData(shape);
+			_revert.push(obj);
 		},
 
 		pushShapeDeletion: function(shape) {
@@ -28,11 +26,11 @@ var flow = (function(flow) {
 				{connectionsSources: this._getShapeSourcesOfShapeConnections(shape)}
 			);
 
-			this._revert.push(obj);
+			_revert.push(obj);
 		},
 
 		pushShapeCreated: function($shape) {
-			var _revert = this._revert;
+			var _revert = _revert;
 
 			var idFlowchart = $shape.parent().attr("data-flow-id");
 			var obj = {};
@@ -71,56 +69,54 @@ var flow = (function(flow) {
 			var _revert = {};
 			_revert[idFlowchart] = {};
 			_revert[idFlowchart][this.CONNECTION_ALTERATION] = connections;
-			this._revert.push(_revert);
+			_revert.push(_revert);
 		},
 
-		revert: function(flowchart) {;
-			var idFlowchart = flowchart.getAttribute("data-flow-id");
+		revert: function(flowchart) {
+			var last = _revert.pop();
 
-			var last = this._revert.pop();
-
-			if (last !== undefined && last[idFlowchart] !== undefined) {
-				this._routeReversion(last[idFlowchart]);
+			if (last !== undefined) {
+				this._routeReversion(last);
 			}
 		},
 
 		undoRevert: function(flowchart) {
 			var idFlowchart = flowchart.getAttribute("data-flow-id");
 
-			var last = this._undoRevert.pop();
+			var last = _undoRevert.pop();
 
-			if (last !== undefined && last[idFlowchart] !== undefined) {
-				this._routeReversion(last[idFlowchart]);
+			if (last !== undefined) {
+				this._routeReversion(last);
 			}
 		},
 
-		_routeReversion: function(lastFromFlowchart) {
-			if (lastFromFlowchart[this.SHAPE_ALTERATION]) {
-				var shapeData = lastFromFlowchart[this.SHAPE_ALTERATION];
+		_routeReversion: function(last) {
+			if (last[flow.Const.SHAPE_EVENT.ALTERATED]) {
+				var shapeData = last[flow.Const.SHAPE_EVENT.ALTERATED];
 				this._revertShapeState(shapeData);
 			}
-			else if (lastFromFlowchart[this.SHAPE_DELETION]) {
-				this._revertShapeState(lastFromFlowchart[this.SHAPE_DELETION]);
+			else if (last[this.SHAPE_DELETION]) {
+				_revertShapeState(last[this.SHAPE_DELETION]);
 			}
-			else if (lastFromFlowchart[this.SHAPE_CREADTED]) {
-				this._revertShapeCreation(lastFromFlowchart[this.SHAPE_CREADTED]);
+			else if (last[this.SHAPE_CREADTED]) {
+				_revertShapeCreation(last[this.SHAPE_CREADTED]);
 			}
-			else if (lastFromFlowchart[this.CONNECTION_ALTERATION]) {
-				this._revertConnectionAlteration(lastFromFlowchart[this.CONNECTION_ALTERATION]);
+			else if (last[this.CONNECTION_ALTERATION]) {
+				_revertConnectionAlteration(last[this.CONNECTION_ALTERATION]);
 			}
 		},
 
-		_revertShapeState: function(data) {
-			var $shape = flow.ShapeHandler.findShapeById(data.id);
+		_revertShapeState: function(shapeData) {
+			var shape = flow.findShapeById(shapeData.id);
 
-			if ($shape.length > 0) {
-				this._revertShapeAlteration($shape, data);
+			if (shape !== null) {
+				this._revertShapeAlteration(shape, shapeData);
 			}
 			else {
-				this._revertShapeDeletion($shape, data);
+				_revertShapeDeletion(shape, shapeData);
 			}
 
-			$shape.focus();
+			shape.focus();
 		},
 
 		_revertShapeCreation: function(data) {
@@ -132,10 +128,9 @@ var flow = (function(flow) {
 			$shape.remove();
 		},
 
-		_revertShapeAlteration: function($shape, data) {
-			this._setShapeProperties($shape, data);
-			jsPlumb.repaint($shape);
-			flow.ShapeHandler.ajaxSave($shape[0]);
+		_revertShapeAlteration: function(shape, shapeData) {
+			this._setShapeProperties(shape, shapeData);
+			jsPlumb.repaint(shape);
 		},
 
 		_revertShapeDeletion: function($shape, data) {
@@ -209,13 +204,20 @@ var flow = (function(flow) {
 			}
 		},
 
-		_setShapeProperties: function($shape, data) {
-			$shape.css({
-				top: data.top + "px",
-				left: data.left + "px"
-			});
-			$shape.attr("data-flow-id", data.id);
-			$shape.find("code").text(data.value);
+		_setShapeProperties: function(shape, shapeData) {
+			if (shapeData.width || shapeData.height) {
+				var innerImage = shape.querySelector('.shape.image');
+				innerImage.style.width = shapeData.width;
+				innerImage.style.height = shapeData.height;
+			}
+
+			if (shapeData.code) {
+				shape.querySelector('code').textContent = shapeData.code;
+			}
+
+			shape.style.top = shapeData.top;
+			shape.style.left = shapeData.left;
+			shape.setAttribute('data-flow-shape-id', shapeData.id);
 		}
 	};
 

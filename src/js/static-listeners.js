@@ -282,7 +282,7 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				//flow.State.revert(flowchart);
+				flow.State.revert(); /// TODO
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
@@ -337,12 +337,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._shapeAltered = function() {
 		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
-			var shape = event.target,
-				left = shape.style.left,
-				top = shape.style.top,
-				code = shape.querySelector('code').textContent;
-
-			//TODO
+			var shape = event.target;
+			flow.State.pushShapeAlteration(shape);
 		});
 	};
 

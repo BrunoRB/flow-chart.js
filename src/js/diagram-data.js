@@ -14,7 +14,9 @@ var flow = (function(flow, doc, jsPlumb) {
 	flow.getShapeData = function(shapeDOM) {
 		var connections = jsPlumb.getConnections({source: shapeDOM}),
 			shapeTargetConnections = {},
-			shapeImage = shapeDOM.querySelector('.shape.image');
+			shapeImage = shapeDOM.querySelector('.shape.image'),
+			shapeCodeDOM = shapeDOM.querySelector('code'),
+			shapeText = '';
 
 		for (var i=connections.length; i--; ) {
 			var conn = connections[i];
@@ -25,12 +27,14 @@ var flow = (function(flow, doc, jsPlumb) {
 			};
 		}
 
+		shapeText = shapeCodeDOM !== null ? shapeCodeDOM.textContent : shapeDOM.querySelector('input').value;
+
 		return {
 			id: shapeDOM.getAttribute('data-flow-shape-id'),
 			type: shapeDOM.getAttribute('data-flow-shape-type'),
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
-			code: shapeDOM.querySelector('code').textContent,
+			code: shapeText,
 			targetConnections: shapeTargetConnections,
 			width: shapeImage.style.width || null,
 			height: shapeImage.style.height || null

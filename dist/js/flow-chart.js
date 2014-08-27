@@ -114,6 +114,231 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 	return flow;
 })(flow || {}, document, jsPlumbUtil);
 
+var flow = (function(flow) {
+	'use strict';
+
+	var Util = flow.Util,
+		_revert = [],
+		_undoRevert = [];
+
+	flow.State = {
+		cleanState: function() {
+			_revert = [];
+			_undoRevert = [];
+		},
+
+		pushShapeAlteration: function(shape) {
+			var obj = {};
+			obj[flow.Const.SHAPE_EVENT.ALTERATED] = flow.getShapeData(shape);
+			_revert.push(obj);
+		},
+
+		pushShapeDeletion: function(shape) {
+			var obj = {};
+			obj[Const.SHAPE_EVENT.DELETED] = Util.extend(
+				flow.getShapeData(shape),
+				{connectionsTargets: this._getShapeTargetsOfShapeConnections(shape)},
+				{connectionsSources: this._getShapeSourcesOfShapeConnections(shape)}
+			);
+
+			_revert.push(obj);
+		},
+
+		pushShapeCreated: function($shape) {
+			var _revert = _revert;
+
+			var idFlowchart = $shape.parent().attr("data-flow-id");
+			var obj = {};
+			obj[idFlowchart] = {};
+			obj[idFlowchart][this.SHAPE_CREADTED] = flow.ShapeHandler.getShapeData($shape);
+
+			_revert.push(obj);
+		},
+
+		_getShapeTargetsOfShapeConnections: function(shape) {
+			var connections = jsPlumb.getConnections({source: shape});
+			var targets = [];
+			for (var i = 0; i < connections.length; i++) {
+				targets.push({
+					id: connections[i].target.getAttribute("data-flow-id"),
+					label: $(connections[i].getLabel()).text() // TODO
+				});
+			}
+			return targets;
+		},
+
+		_getShapeSourcesOfShapeConnections: function(shape) {
+			var connections = jsPlumb.getConnections({target: shape});
+			var sources = [];
+			for (var i = 0; i < connections.length; i++) {
+				sources.push({
+					id: connections[i].source.getAttribute("data-flow-id"),
+					label: $(connections[i].getLabel()).text() // TODO
+				});
+			}
+			return sources;
+		},
+
+		pushConnectionAlteration: function (connections) {
+			var idFlowchart = connections.idFlowchart;
+			var _revert = {};
+			_revert[idFlowchart] = {};
+			_revert[idFlowchart][this.CONNECTION_ALTERATION] = connections;
+			_revert.push(_revert);
+		},
+
+		revert: function(flowchart) {
+			var last = _revert.pop();
+
+			if (last !== undefined) {
+				this._routeReversion(last);
+			}
+		},
+
+		undoRevert: function(flowchart) {
+			var idFlowchart = flowchart.getAttribute("data-flow-id");
+
+			var last = _undoRevert.pop();
+
+			if (last !== undefined) {
+				this._routeReversion(last);
+			}
+		},
+
+		_routeReversion: function(last) {
+			if (last[flow.Const.SHAPE_EVENT.ALTERATED]) {
+				var shapeData = last[flow.Const.SHAPE_EVENT.ALTERATED];
+				this._revertShapeState(shapeData);
+			}
+			else if (last[this.SHAPE_DELETION]) {
+				_revertShapeState(last[this.SHAPE_DELETION]);
+			}
+			else if (last[this.SHAPE_CREADTED]) {
+				_revertShapeCreation(last[this.SHAPE_CREADTED]);
+			}
+			else if (last[this.CONNECTION_ALTERATION]) {
+				_revertConnectionAlteration(last[this.CONNECTION_ALTERATION]);
+			}
+		},
+
+		_revertShapeState: function(shapeData) {
+			var shape = flow.findShapeById(shapeData.id);
+
+			if (shape !== null) {
+				this._revertShapeAlteration(shape, shapeData);
+			}
+			else {
+				_revertShapeDeletion(shape, shapeData);
+			}
+
+			shape.focus();
+		},
+
+		_revertShapeCreation: function(data) {
+			var shapeHandler = flow.ShapeHandler;
+
+			var $shape = shapeHandler.findShapeById(data.id);
+
+			shapeHandler.ajaxDelete($shape[0]);
+			$shape.remove();
+		},
+
+		_revertShapeAlteration: function(shape, shapeData) {
+			this._setShapeProperties(shape, shapeData);
+			jsPlumb.repaint(shape);
+		},
+
+		_revertShapeDeletion: function($shape, data) {
+			var shapeHandler = flow.ShapeHandler;
+
+			$shape = shapeHandler.getShapeCloneByName(data.shapeDefinitionName);
+			this._setShapeProperties($shape, data);
+			$shape = new flow.Shape($shape);
+			shapeHandler.ajaxRecreate(data);
+
+			flow.FlowchartHandler.getActiveFlowchart$().append($shape);
+
+			this._remakeConnections($shape, data.connectionsTargets, data.connectionsSources);
+		},
+
+		_remakeConnections: function($shape, targetsData, sourcesData) {
+			var shapeHandler = flow.ShapeHandler;
+
+			var $flowchart = $shape.parent();
+
+			var targetsLength = targetsData.length;
+			if (targetsLength > 0) {
+				for (var i = 0; i < targetsLength; i++) {
+					var targetData = targetsData[i];
+					var $target = shapeHandler.findShapeById(targetData.id);
+					var connection = jsPlumb.connect({source: $shape, target: $target});
+					shapeHandler.setConnectionLabel(connection, targetData.label, $flowchart);
+					shapeHandler.ajaxSetConnection($shape[0], $target[0], targetData.label);
+				}
+			}
+
+			var sourcesLength = sourcesData.length;
+			if (sourcesLength > 0) {
+				for (var i = 0; i < sourcesLength; i++) {
+					var sourceData = sourcesData[i];
+					var $source = shapeHandler.findShapeById(sourceData.id);
+					var connection = jsPlumb.connect({source: $source, target: $shape});
+					shapeHandler.setConnectionLabel(connection, sourceData.label, $flowchart);
+					shapeHandler.ajaxSetConnection($source[0], $shape[0], sourceData.label);
+				}
+			}
+		},
+
+		_revertConnectionState: function(data) {
+			var shapeHandler = flow.ShapeHandler;
+
+			var $source = shapeHandler.findShapeById(data.sourceId);
+			var $target = shapeHandler.findShapeById(data.targetId);
+			var value = (data.value !== "") ? data.value : "";
+
+			var connection = jsPlumb.connect({source: $source, target: $target});
+
+			var $flowchart = $source.parent();
+
+			shapeHandler.setConnectionLabel(connection, value, $source.parent(), $flowchart);
+
+			shapeHandler.ajaxSetConnection(connection.source, connection.target, value);
+		},
+
+		_revertConnectionAlteration: function(data) {
+			var created = data.createdConnectionInfo;
+			var deleted = data.deletedConnectionInfo;
+
+			if (created !== undefined) {
+				flow.ShapeHandler.deleteConnection(created.source, created.target);
+			}
+
+			if (deleted !== undefined) {
+				jsPlumb.connect({source: deleted.source, target: deleted.target});
+				flow.ShapeHandler.ajaxSetConnection(deleted.source, deleted.target, deleted.value);
+			}
+		},
+
+		_setShapeProperties: function(shape, shapeData) {
+			if (shapeData.width || shapeData.height) {
+				var innerImage = shape.querySelector('.shape.image');
+				innerImage.style.width = shapeData.width;
+				innerImage.style.height = shapeData.height;
+			}
+
+			if (shapeData.code) {
+				shape.querySelector('code').textContent = shapeData.code;
+			}
+
+			shape.style.top = shapeData.top;
+			shape.style.left = shapeData.left;
+			shape.setAttribute('data-flow-shape-id', shapeData.id);
+		}
+	};
+
+	return flow;
+})(flow || {});
+
 var flow = (function(flow, doc) {
 	'use strict';
 
@@ -305,7 +530,9 @@ var flow = (function(flow, doc, jsPlumb) {
 	flow.getShapeData = function(shapeDOM) {
 		var connections = jsPlumb.getConnections({source: shapeDOM}),
 			shapeTargetConnections = {},
-			shapeImage = shapeDOM.querySelector('.shape.image');
+			shapeImage = shapeDOM.querySelector('.shape.image'),
+			shapeCodeDOM = shapeDOM.querySelector('code'),
+			shapeText = '';
 
 		for (var i=connections.length; i--; ) {
 			var conn = connections[i];
@@ -316,12 +543,14 @@ var flow = (function(flow, doc, jsPlumb) {
 			};
 		}
 
+		shapeText = shapeCodeDOM !== null ? shapeCodeDOM.textContent : shapeDOM.querySelector('input').value;
+
 		return {
 			id: shapeDOM.getAttribute('data-flow-shape-id'),
 			type: shapeDOM.getAttribute('data-flow-shape-type'),
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
-			code: shapeDOM.querySelector('code').textContent,
+			code: shapeText,
 			targetConnections: shapeTargetConnections,
 			width: shapeImage.style.width || null,
 			height: shapeImage.style.height || null
@@ -808,7 +1037,7 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				//flow.State.revert(flowchart);
+				flow.State.revert(); /// TODO
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
@@ -863,12 +1092,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._shapeAltered = function() {
 		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
-			var shape = event.target,
-				left = shape.style.left,
-				top = shape.style.top,
-				code = shape.querySelector('code').textContent;
-
-			//TODO
+			var shape = event.target;
+			flow.State.pushShapeAlteration(shape);
 		});
 	};
 
@@ -1337,7 +1562,7 @@ flow.UI = {
 			inputEl = null;
 
 		codeEl = shape.querySelector('code');
-		oldText = codeEl.textContent;
+		oldText = codeEl.textContent.replace(/"/g, '&quot;'); // escape quotes
 
         codeEl.outerHTML = flow.Templates.getShapeInnerInput(oldText);
 
@@ -1362,7 +1587,13 @@ flow.UI = {
         });
 
 		var _removeInputFocus = function(event) {
-            this.outerHTML = flow.Templates.getShapeInnerCode(this.value); //Hidden again
+			var newText = this.value;
+
+			if (newText !== oldText) {
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			}
+
+            this.outerHTML = flow.Templates.getShapeInnerCode(newText); //Hidden again
 		};
     },
 
@@ -1437,20 +1668,20 @@ var flow = (function(flow) {
 	};
 
 	Const.DIAGRAM_EVENT = {
-		LOADED: 'loaded'
+		LOADED: 'diagram_loaded'
 	};
 
 	Const.SHAPE_EVENT = {
-		SELECTED: 'selected',
-		MOVED: 'moved',
-		DELETED: 'deleted',
-		ALTERATED: 'altered',
-		CREATED: 'created'
+		SELECTED: 'shape_selected',
+		MOVED: 'shape_moved',
+		DELETED: 'shape_deleted',
+		ALTERATED: 'shape_altered',
+		CREATED: 'shape_created'
 	};
 
 	Const.CONNECTION_EVENT = {
-		ALTERED: 'altered',
-		SELECTED: 'selected'
+		ALTERED: 'connection_altered',
+		SELECTED: 'connection_selected'
 	};
 
 	Const.CONNECTION_TYPE = {
@@ -1858,6 +2089,10 @@ var flow = (function(flow, doc, jsPlumb) {
 		};
 	})();
 
+	flow.findShapeById = function(idShape) {
+		return flow.getCurrentDiagram().querySelector('div.shape[data-flow-shape-id="' + idShape + '"]');
+	};
+
 	/**
 	 * Creates a new diagram and append it to DOM.
 	 *
@@ -2076,6 +2311,26 @@ var flow = (function(flow, doc, jsPlumb) {
 				flow.Selection.addSelectedShape(shape);
 
 				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			},
+			drag: function(params) {
+				return 'TODO';
+
+				var shape = params.el,
+					flowchart = shape.parentNode,
+					left = parseInt(shape.style.left, 10) + shape.offsetWidth,
+					top = parseInt(shape.style.top, 10) + shape.offsetHeight,
+					flowchartHeight = flowchart.offsetHeight,
+					flowchartWidth = flowchart.offsetWidth,
+					flowchartScrollLeft = flowchart.scrollLeft,
+					flowchartScrollTop = flowchart.scrollTop,
+					flowchartBottomBorder = flowchartHeight + flowchart.scrollTop;
+
+
+				if (top >= flowchartBottomBorder) {
+					flowchart.scrollTop = flowchartScrollTop + (top - flowchartBottomBorder) * 4;
+				}
+
+				//TODO
 			}
 		});
 
