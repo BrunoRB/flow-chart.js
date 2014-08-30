@@ -113,10 +113,8 @@ var flow = (function(flow) {
 				this._revertShapeAlteration(shape, shapeData);
 			}
 			else {
-				_revertShapeDeletion(shape, shapeData);
+				this._revertShapeDeletion(shapeData);
 			}
-
-			shape.focus();
 		},
 
 		_revertShapeCreation: function(data) {
@@ -133,17 +131,18 @@ var flow = (function(flow) {
 			jsPlumb.repaint(shape);
 		},
 
-		_revertShapeDeletion: function($shape, data) {
-			var shapeHandler = flow.ShapeHandler;
+		_revertShapeDeletion: function(shapeData) {
+			var shape = flow.getShapeCloneByType(shapeData.type),
+				flowchart = flow.getCurrentDiagram();
 
-			$shape = shapeHandler.getShapeCloneByName(data.shapeDefinitionName);
-			this._setShapeProperties($shape, data);
-			$shape = new flow.Shape($shape);
-			shapeHandler.ajaxRecreate(data);
+			flowchart.appendChild(shape);
 
-			flow.FlowchartHandler.getActiveFlowchart$().append($shape);
+			this._setShapeProperties(shape, shapeData);
 
-			this._remakeConnections($shape, data.connectionsTargets, data.connectionsSources);
+			flow.makeShapeDraggable(shape, shapeData);
+
+			//TODO
+			//this._remakeConnections(shape, data.connectionsTargets, data.connectionsSources);
 		},
 
 		_remakeConnections: function($shape, targetsData, sourcesData) {
@@ -218,6 +217,8 @@ var flow = (function(flow) {
 			shape.style.top = shapeData.top;
 			shape.style.left = shapeData.left;
 			shape.setAttribute('data-flow-shape-id', shapeData.id);
+
+			shape.focus();
 		}
 	};
 

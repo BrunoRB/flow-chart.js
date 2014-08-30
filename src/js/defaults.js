@@ -73,7 +73,7 @@ var flow = (function(flow, jsPlumb) {
 			['Arrow', {width: 25, length: 25, location: 1}]
 		];
 
-		jsPlumbDefaults.ReattachConnections = false;
+		jsPlumbDefaults.ReattachConnections = true;
 	};
 
 	return flow;

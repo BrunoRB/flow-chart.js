@@ -365,17 +365,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-				jsPlumb.connect({
-					source: source,
-					target: target,
-					connector: jsPlumb.Defaults.Connector, // we call this "connector style"
-					parameters: {
-						connectorType: flow.currentConnectorType
-					},
-					label: '',
-					paintStyle: jsPlumb.Defaults.PaintStyle
-				});
-                return false;
+                return true;
             }
         });
     })();

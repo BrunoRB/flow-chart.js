@@ -228,10 +228,8 @@ var flow = (function(flow) {
 				this._revertShapeAlteration(shape, shapeData);
 			}
 			else {
-				_revertShapeDeletion(shape, shapeData);
+				this._revertShapeDeletion(shapeData);
 			}
-
-			shape.focus();
 		},
 
 		_revertShapeCreation: function(data) {
@@ -248,17 +246,18 @@ var flow = (function(flow) {
 			jsPlumb.repaint(shape);
 		},
 
-		_revertShapeDeletion: function($shape, data) {
-			var shapeHandler = flow.ShapeHandler;
+		_revertShapeDeletion: function(shapeData) {
+			var shape = flow.getShapeCloneByType(shapeData.type),
+				flowchart = flow.getCurrentDiagram();
 
-			$shape = shapeHandler.getShapeCloneByName(data.shapeDefinitionName);
-			this._setShapeProperties($shape, data);
-			$shape = new flow.Shape($shape);
-			shapeHandler.ajaxRecreate(data);
+			flowchart.appendChild(shape);
 
-			flow.FlowchartHandler.getActiveFlowchart$().append($shape);
+			this._setShapeProperties(shape, shapeData);
 
-			this._remakeConnections($shape, data.connectionsTargets, data.connectionsSources);
+			flow.makeShapeDraggable(shape, shapeData);
+
+			//TODO
+			//this._remakeConnections(shape, data.connectionsTargets, data.connectionsSources);
 		},
 
 		_remakeConnections: function($shape, targetsData, sourcesData) {
@@ -333,6 +332,8 @@ var flow = (function(flow) {
 			shape.style.top = shapeData.top;
 			shape.style.left = shapeData.left;
 			shape.setAttribute('data-flow-shape-id', shapeData.id);
+
+			shape.focus();
 		}
 	};
 
@@ -509,7 +510,7 @@ var flow = (function(flow, jsPlumb) {
 			['Arrow', {width: 25, length: 25, location: 1}]
 		];
 
-		jsPlumbDefaults.ReattachConnections = false;
+		jsPlumbDefaults.ReattachConnections = true;
 	};
 
 	return flow;
@@ -1120,17 +1121,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-				jsPlumb.connect({
-					source: source,
-					target: target,
-					connector: jsPlumb.Defaults.Connector, // we call this "connector style"
-					parameters: {
-						connectorType: flow.currentConnectorType
-					},
-					label: '',
-					paintStyle: jsPlumb.Defaults.PaintStyle
-				});
-                return false;
+                return true;
             }
         });
     })();
@@ -1727,6 +1718,7 @@ var flow = (function(flow, doc, jsPlumb) {
 		if (_selectedElement) {
 			if (_selectedElement.type === 'shape') {
 				var shape = doc.getElementById(_selectedElement.id);
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
 				jsPlumb.detachAllConnections(shape);
 				flow.Util.remove(shape);
 			}
@@ -2093,6 +2085,10 @@ var flow = (function(flow, doc, jsPlumb) {
 		return flow.getCurrentDiagram().querySelector('div.shape[data-flow-shape-id="' + idShape + '"]');
 	};
 
+	flow.getShapeCloneByType = function(type) {
+		return flow.Cache.shapeMenu.querySelector('div.shape[data-flow-shape-type="' + type + '"]').cloneNode(true);
+	};
+
 	/**
 	 * Creates a new diagram and append it to DOM.
 	 *
@@ -2265,40 +2261,7 @@ var flow = (function(flow, doc, jsPlumb) {
 		}
 	};
 
-	var _makeDiagramDroppable = function(diagram) {
-		var k = jsPlumb._katavorio;
-		k.droppable(diagram, {
-			scope: 'dragFromMenu',
-			drop:function(params) {
-				var flowchart = params.drop.el,
-					baseShape = params.drag.el,
-					maxAllowedCopies = parseInt(baseShape.getAttribute('data-flow-max-copies'), 10),
-					type = baseShape.getAttribute('data-flow-shape-type');
-
-				if (maxAllowedCopies === -1 || _getAmountOfShapesInDiagram(diagram, type) < maxAllowedCopies) {
-					var shapeClone = baseShape.cloneNode(true);
-
-					shapeClone.style.left = params.e.layerX + flowchart.scrollLeft + 'px';
-					shapeClone.style.top = params.e.layerY + flowchart.scrollTop + 'px';
-
-					diagram.appendChild(shapeClone);
-
-					_setupShape(shapeClone);
-				}
-				else {
-					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
-				}
-			}
-		});
-	};
-
-	var _getAmountOfShapesInDiagram = function(diagram, shapeType) {
-		return diagram.querySelectorAll('div.shape[data-flow-shape-type="' + shapeType + '"]').length;
-	};
-
-	var _setupShape = function(shape) {
-		var shapeData = _getShapeData(shape);
-
+	flow.makeShapeDraggable = function(shape, shapeData) {
 		shape.removeAttribute('id'); // ENSURE ID is empty. jsPlumb.draggable will create a new one
 
 		jsPlumb.draggable(shape, {
@@ -2334,10 +2297,6 @@ var flow = (function(flow, doc, jsPlumb) {
 			}
 		});
 
-		if (!shapeData.secondId) {
-			shape.setAttribute('data-flow-shape-id', flow.Util.getUniqueID(shapeData.type));
-		}
-
 		if (shapeData.maxInputs > 0) {
 			jsPlumb.makeTarget(shape, {
 				maxConnections: shapeData.maxInputs,
@@ -2362,6 +2321,47 @@ var flow = (function(flow, doc, jsPlumb) {
 				filter: '.connector',
 				isSource: true
 			});
+		}
+	};
+
+	var _makeDiagramDroppable = function(diagram) {
+		var k = jsPlumb._katavorio;
+		k.droppable(diagram, {
+			scope: 'dragFromMenu',
+			drop:function(params) {
+				var flowchart = params.drop.el,
+					baseShape = params.drag.el,
+					maxAllowedCopies = parseInt(baseShape.getAttribute('data-flow-max-copies'), 10),
+					type = baseShape.getAttribute('data-flow-shape-type');
+
+				if (maxAllowedCopies === -1 || _getAmountOfShapesInDiagram(diagram, type) < maxAllowedCopies) {
+					var shapeClone = baseShape.cloneNode(true);
+
+					shapeClone.style.left = params.e.layerX + flowchart.scrollLeft + 'px';
+					shapeClone.style.top = params.e.layerY + flowchart.scrollTop + 'px';
+
+					diagram.appendChild(shapeClone);
+
+					_setupShape(shapeClone);
+				}
+				else {
+					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
+				}
+			}
+		});
+	};
+
+	var _getAmountOfShapesInDiagram = function(diagram, shapeType) {
+		return diagram.querySelectorAll('div.shape[data-flow-shape-type="' + shapeType + '"]').length;
+	};
+
+	var _setupShape = function(shape) {
+		var shapeData = _getShapeData(shape);
+
+		flow.makeShapeDraggable(shape, shapeData);
+
+		if (!shapeData.secondId) {
+			shape.setAttribute('data-flow-shape-id', flow.Util.getUniqueID(shapeData.type));
 		}
 	};
 

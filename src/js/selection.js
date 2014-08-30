@@ -34,6 +34,7 @@ var flow = (function(flow, doc, jsPlumb) {
 		if (_selectedElement) {
 			if (_selectedElement.type === 'shape') {
 				var shape = doc.getElementById(_selectedElement.id);
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
 				jsPlumb.detachAllConnections(shape);
 				flow.Util.remove(shape);
 			}

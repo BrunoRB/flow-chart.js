@@ -41,6 +41,10 @@ var flow = (function(flow, doc, jsPlumb) {
 		return flow.getCurrentDiagram().querySelector('div.shape[data-flow-shape-id="' + idShape + '"]');
 	};
 
+	flow.getShapeCloneByType = function(type) {
+		return flow.Cache.shapeMenu.querySelector('div.shape[data-flow-shape-type="' + type + '"]').cloneNode(true);
+	};
+
 	/**
 	 * Creates a new diagram and append it to DOM.
 	 *
@@ -213,40 +217,7 @@ var flow = (function(flow, doc, jsPlumb) {
 		}
 	};
 
-	var _makeDiagramDroppable = function(diagram) {
-		var k = jsPlumb._katavorio;
-		k.droppable(diagram, {
-			scope: 'dragFromMenu',
-			drop:function(params) {
-				var flowchart = params.drop.el,
-					baseShape = params.drag.el,
-					maxAllowedCopies = parseInt(baseShape.getAttribute('data-flow-max-copies'), 10),
-					type = baseShape.getAttribute('data-flow-shape-type');
-
-				if (maxAllowedCopies === -1 || _getAmountOfShapesInDiagram(diagram, type) < maxAllowedCopies) {
-					var shapeClone = baseShape.cloneNode(true);
-
-					shapeClone.style.left = params.e.layerX + flowchart.scrollLeft + 'px';
-					shapeClone.style.top = params.e.layerY + flowchart.scrollTop + 'px';
-
-					diagram.appendChild(shapeClone);
-
-					_setupShape(shapeClone);
-				}
-				else {
-					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
-				}
-			}
-		});
-	};
-
-	var _getAmountOfShapesInDiagram = function(diagram, shapeType) {
-		return diagram.querySelectorAll('div.shape[data-flow-shape-type="' + shapeType + '"]').length;
-	};
-
-	var _setupShape = function(shape) {
-		var shapeData = _getShapeData(shape);
-
+	flow.makeShapeDraggable = function(shape, shapeData) {
 		shape.removeAttribute('id'); // ENSURE ID is empty. jsPlumb.draggable will create a new one
 
 		jsPlumb.draggable(shape, {
@@ -282,10 +253,6 @@ var flow = (function(flow, doc, jsPlumb) {
 			}
 		});
 
-		if (!shapeData.secondId) {
-			shape.setAttribute('data-flow-shape-id', flow.Util.getUniqueID(shapeData.type));
-		}
-
 		if (shapeData.maxInputs > 0) {
 			jsPlumb.makeTarget(shape, {
 				maxConnections: shapeData.maxInputs,
@@ -310,6 +277,47 @@ var flow = (function(flow, doc, jsPlumb) {
 				filter: '.connector',
 				isSource: true
 			});
+		}
+	};
+
+	var _makeDiagramDroppable = function(diagram) {
+		var k = jsPlumb._katavorio;
+		k.droppable(diagram, {
+			scope: 'dragFromMenu',
+			drop:function(params) {
+				var flowchart = params.drop.el,
+					baseShape = params.drag.el,
+					maxAllowedCopies = parseInt(baseShape.getAttribute('data-flow-max-copies'), 10),
+					type = baseShape.getAttribute('data-flow-shape-type');
+
+				if (maxAllowedCopies === -1 || _getAmountOfShapesInDiagram(diagram, type) < maxAllowedCopies) {
+					var shapeClone = baseShape.cloneNode(true);
+
+					shapeClone.style.left = params.e.layerX + flowchart.scrollLeft + 'px';
+					shapeClone.style.top = params.e.layerY + flowchart.scrollTop + 'px';
+
+					diagram.appendChild(shapeClone);
+
+					_setupShape(shapeClone);
+				}
+				else {
+					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
+				}
+			}
+		});
+	};
+
+	var _getAmountOfShapesInDiagram = function(diagram, shapeType) {
+		return diagram.querySelectorAll('div.shape[data-flow-shape-type="' + shapeType + '"]').length;
+	};
+
+	var _setupShape = function(shape) {
+		var shapeData = _getShapeData(shape);
+
+		flow.makeShapeDraggable(shape, shapeData);
+
+		if (!shapeData.secondId) {
+			shape.setAttribute('data-flow-shape-id', flow.Util.getUniqueID(shapeData.type));
 		}
 	};
 
