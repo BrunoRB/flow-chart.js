@@ -39,10 +39,13 @@ var flow = (function(flow, doc, jsPlumb) {
 				flow.Util.remove(shape);
 			}
 			else {
-				var conn = jsPlumb.getConnections({
-					source: _selectedElement.from,
-					target: _selectedElement.to
-				})[0];
+				var shapeSource = doc.getElementById(_selectedElement.from),
+					conn = jsPlumb.getConnections({
+						source: _selectedElement.from,
+						target: _selectedElement.to
+					})[0];
+
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shapeSource);
 
 				jsPlumb.detach(conn);
 			}

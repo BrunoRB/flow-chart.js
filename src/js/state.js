@@ -113,8 +113,10 @@ var flow = (function(flow, jsPlumb) {
 				this._revertShapeAlteration(shape, shapeData);
 			}
 			else {
-				this._revertShapeDeletion(shapeData);
+				shape = this._revertShapeDeletion(shapeData);
 			}
+
+			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 		},
 
 		_revertShapeCreation: function(data) {
@@ -141,7 +143,7 @@ var flow = (function(flow, jsPlumb) {
 
 			flow.makeShapeDraggable(shape, shapeData);
 
-			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+			return shape;
 		},
 
 		_remakeConnections: function(shape, sourceConnections, targetConnections) {
@@ -149,14 +151,20 @@ var flow = (function(flow, jsPlumb) {
 
 			for (var id in sourceConnections) {
 				var label = sourceConnections[id].label,
-					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
-				jsPlumb.connect({source: source, target: shape, label: label});
+					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]'),
+					connExists = jsPlumb.getConnections({source: source, target: shape}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: source, target: shape, label: label});
+				}
 			}
 
 			for (var id in targetConnections) {
 				var label = targetConnections[id].label,
 					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
-				jsPlumb.connect({source: shape, target: target, label: label});
+					connExists = jsPlumb.getConnections({source: shape, target: target}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: shape, target: target, label: label});
+				}
 			}
 		},
 

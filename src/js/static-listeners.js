@@ -270,7 +270,7 @@ var flow = (function(flow, doc, jsPlumb) {
 				targetNodeName = event.target.nodeName.toLowerCase(),
 				isDel = event.keyCode === 46;
 
-            if (isDel && targetNodeName !== 'input') {
+            if (isDel && targetNodeName !== 'input') { // ignore "del" when in a shape input
                 flow.Selection.deleteSelectedItems();
 				flowchart.focus(); // after a deletion the flowchart loses focus
             }

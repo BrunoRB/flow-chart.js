@@ -228,8 +228,10 @@ var flow = (function(flow, jsPlumb) {
 				this._revertShapeAlteration(shape, shapeData);
 			}
 			else {
-				this._revertShapeDeletion(shapeData);
+				shape = this._revertShapeDeletion(shapeData);
 			}
+
+			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 		},
 
 		_revertShapeCreation: function(data) {
@@ -256,7 +258,7 @@ var flow = (function(flow, jsPlumb) {
 
 			flow.makeShapeDraggable(shape, shapeData);
 
-			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+			return shape;
 		},
 
 		_remakeConnections: function(shape, sourceConnections, targetConnections) {
@@ -264,14 +266,20 @@ var flow = (function(flow, jsPlumb) {
 
 			for (var id in sourceConnections) {
 				var label = sourceConnections[id].label,
-					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
-				jsPlumb.connect({source: source, target: shape, label: label});
+					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]'),
+					connExists = jsPlumb.getConnections({source: source, target: shape}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: source, target: shape, label: label});
+				}
 			}
 
 			for (var id in targetConnections) {
 				var label = targetConnections[id].label,
 					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
-				jsPlumb.connect({source: shape, target: target, label: label});
+					connExists = jsPlumb.getConnections({source: shape, target: target}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: shape, target: target, label: label});
+				}
 			}
 		},
 
@@ -1025,7 +1033,7 @@ var flow = (function(flow, doc, jsPlumb) {
 				targetNodeName = event.target.nodeName.toLowerCase(),
 				isDel = event.keyCode === 46;
 
-            if (isDel && targetNodeName !== 'input') {
+            if (isDel && targetNodeName !== 'input') { // ignore "del" when in a shape input
                 flow.Selection.deleteSelectedItems();
 				flowchart.focus(); // after a deletion the flowchart loses focus
             }
@@ -1716,10 +1724,13 @@ var flow = (function(flow, doc, jsPlumb) {
 				flow.Util.remove(shape);
 			}
 			else {
-				var conn = jsPlumb.getConnections({
-					source: _selectedElement.from,
-					target: _selectedElement.to
-				})[0];
+				var shapeSource = doc.getElementById(_selectedElement.from),
+					conn = jsPlumb.getConnections({
+						source: _selectedElement.from,
+						target: _selectedElement.to
+					})[0];
+
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shapeSource);
 
 				jsPlumb.detach(conn);
 			}
