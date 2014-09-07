@@ -94,25 +94,37 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	flow.openLocallyStoredDiagrams = function() {
-		var text = window.localStorage.getItem('flow');
+		var opened = false,
+			text = window.localStorage.getItem('flow');
 		if (text !== null && text !== '') {
-			flow.openDiagrams(text);
-			return true;
+			opened = flow.openDiagrams(text);
 		}
-		return false;
+		return opened;
 	};
 
 	flow.openDiagrams = function(jsonDataAsText) {
-		var data = JSON.parse(jsonDataAsText),
-			diagrams = data.diagrams;
+		var data = {},
+			diagrams = {};
 
-		flow.Util.count = data.data.count + 1; // this prevents ID duplication !
+		try {
+			data = JSON.parse(jsonDataAsText);
+			diagrams = data.diagrams;
+		}
+		catch(e) {
+			flow.Alerts.showErrorMessage('Error, invalid data.');
+			flow.log(e);
+			return false;
+		}
+
+		flow.Util.count = data.data.count + 1; // prevents ID duplication !
 
 		for (var key in diagrams) {
 			var diagramData = diagrams[key];
 			flow.storeDiagramData(diagramData);
 			flow.recreateDiagramFromStoredData(diagramData.id);
 		};
+
+		return true;
 	};
 
 	flow.recreateDiagramFromStoredData = function(idDiagram) {

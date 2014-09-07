@@ -25,6 +25,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	StaticListeners._openDiagramsClick = function() {
+		var uploadInput = doc.getElementById('temp-upload');
+
 		Util.on(Cache.toolbarContainer, 'click', 'ul.flow.toolbar.list.open.diagram li a', function(event) {
 				event.preventDefault();
 				var result = flow.Alerts.confirm(
@@ -36,6 +38,18 @@ var flow = (function(flow, doc, jsPlumb) {
 				}
 		});
 
+		uploadInput.addEventListener('change', function(event) {
+			var selectedFile = uploadInput.files[0],
+				reader = new FileReader();
+
+			reader.onload = function() {
+				var text = reader.result;
+				flow.openDiagrams(text);
+			};
+
+			reader.readAsText(selectedFile);
+		}, false);
+
 		var _routeOpen = function() {
 			flow.closeAllDiagrams();
 
@@ -43,28 +57,7 @@ var flow = (function(flow, doc, jsPlumb) {
 
 			switch (openAs) {
 				case 'json-file':
-					var parent = this.parentNode;
-
-					parent.insertAdjacentHTML('beforeEnd', '<input id="temp-upload" type="file" />');
-
-					var uploadInput = parent.querySelector('#temp-upload');
-
-					uploadInput.click();
-
-					uploadInput.addEventListener('change', function(event) {
-						var selectedFile = uploadInput.files[0],
-							reader = new FileReader();
-
-						reader.onload = function() {
-							var text = reader.result;
-							flow.openDiagrams(text);
-						};
-
-						reader.readAsText(selectedFile);
-
-						parent.removeChild(this);
-					}, false);
-
+					Util.trigger('click', uploadInput);
 					break;
 				case 'local-storage':
 					var opened = flow.openLocallyStoredDiagrams();

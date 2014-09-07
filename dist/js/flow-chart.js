@@ -781,6 +781,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	StaticListeners._openDiagramsClick = function() {
+		var uploadInput = doc.getElementById('temp-upload');
+
 		Util.on(Cache.toolbarContainer, 'click', 'ul.flow.toolbar.list.open.diagram li a', function(event) {
 				event.preventDefault();
 				var result = flow.Alerts.confirm(
@@ -792,6 +794,18 @@ var flow = (function(flow, doc, jsPlumb) {
 				}
 		});
 
+		uploadInput.addEventListener('change', function(event) {
+			var selectedFile = uploadInput.files[0],
+				reader = new FileReader();
+
+			reader.onload = function() {
+				var text = reader.result;
+				flow.openDiagrams(text);
+			};
+
+			reader.readAsText(selectedFile);
+		}, false);
+
 		var _routeOpen = function() {
 			flow.closeAllDiagrams();
 
@@ -799,28 +813,7 @@ var flow = (function(flow, doc, jsPlumb) {
 
 			switch (openAs) {
 				case 'json-file':
-					var parent = this.parentNode;
-
-					parent.insertAdjacentHTML('beforeEnd', '<input id="temp-upload" type="file" />');
-
-					var uploadInput = parent.querySelector('#temp-upload');
-
-					uploadInput.click();
-
-					uploadInput.addEventListener('change', function(event) {
-						var selectedFile = uploadInput.files[0],
-							reader = new FileReader();
-
-						reader.onload = function() {
-							var text = reader.result;
-							flow.openDiagrams(text);
-						};
-
-						reader.readAsText(selectedFile);
-
-						parent.removeChild(this);
-					}, false);
-
+					Util.trigger('click', uploadInput);
 					break;
 				case 'local-storage':
 					var opened = flow.openLocallyStoredDiagrams();
@@ -2138,25 +2131,37 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	flow.openLocallyStoredDiagrams = function() {
-		var text = window.localStorage.getItem('flow');
+		var opened = false,
+			text = window.localStorage.getItem('flow');
 		if (text !== null && text !== '') {
-			flow.openDiagrams(text);
-			return true;
+			opened = flow.openDiagrams(text);
 		}
-		return false;
+		return opened;
 	};
 
 	flow.openDiagrams = function(jsonDataAsText) {
-		var data = JSON.parse(jsonDataAsText),
-			diagrams = data.diagrams;
+		var data = {},
+			diagrams = {};
 
-		flow.Util.count = data.data.count + 1; // this prevents ID duplication !
+		try {
+			data = JSON.parse(jsonDataAsText);
+			diagrams = data.diagrams;
+		}
+		catch(e) {
+			flow.Alerts.showErrorMessage('Error, invalid data.');
+			flow.log(e);
+			return false;
+		}
+
+		flow.Util.count = data.data.count + 1; // prevents ID duplication !
 
 		for (var key in diagrams) {
 			var diagramData = diagrams[key];
 			flow.storeDiagramData(diagramData);
 			flow.recreateDiagramFromStoredData(diagramData.id);
 		};
+
+		return true;
 	};
 
 	flow.recreateDiagramFromStoredData = function(idDiagram) {

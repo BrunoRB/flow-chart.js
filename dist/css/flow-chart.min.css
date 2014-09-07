@@ -277,6 +277,9 @@
   text-decoration: underline;
   color: #00b5ad;
 }
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container #temp-upload {
+  display: none;
+}
 #right-area.flow.diagram.container {
   -moz-user-select: none;
   -webkit-user-select: none;
