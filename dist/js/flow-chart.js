@@ -114,6 +114,227 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 	return flow;
 })(flow || {}, document, jsPlumbUtil);
 
+var flow = (function(flow, jsPlumb) {
+	'use strict';
+
+	var Util = flow.Util,
+		_revert = [],
+		_undoRevert = [];
+
+	flow.State = {
+		cleanState: function() {
+			_revert = [];
+			_undoRevert = [];
+		},
+
+		pushShapeAlteration: function(shape) {
+			var obj = {};
+			obj[flow.Const.SHAPE_EVENT.ALTERATED] = flow.getShapeData(shape);
+			_revert.push(obj);
+		},
+
+		pushShapeDeletion: function(shape) {
+			var obj = {};
+			obj[Const.SHAPE_EVENT.DELETED] = Util.extend(
+				flow.getShapeData(shape),
+				{connectionsTargets: this._getShapeTargetsOfShapeConnections(shape)},
+				{connectionsSources: this._getShapeSourcesOfShapeConnections(shape)}
+			);
+
+			_revert.push(obj);
+		},
+
+		pushShapeCreated: function($shape) {
+			var _revert = _revert;
+
+			var idFlowchart = $shape.parent().attr("data-flow-id");
+			var obj = {};
+			obj[idFlowchart] = {};
+			obj[idFlowchart][this.SHAPE_CREADTED] = flow.ShapeHandler.getShapeData($shape);
+
+			_revert.push(obj);
+		},
+
+		_getShapeTargetsOfShapeConnections: function(shape) {
+			var connections = jsPlumb.getConnections({source: shape});
+			var targets = [];
+			for (var i = 0; i < connections.length; i++) {
+				targets.push({
+					id: connections[i].target.getAttribute("data-flow-id"),
+					label: $(connections[i].getLabel()).text() // TODO
+				});
+			}
+			return targets;
+		},
+
+		_getShapeSourcesOfShapeConnections: function(shape) {
+			var connections = jsPlumb.getConnections({target: shape});
+			var sources = [];
+			for (var i = 0; i < connections.length; i++) {
+				sources.push({
+					id: connections[i].source.getAttribute("data-flow-id"),
+					label: $(connections[i].getLabel()).text() // TODO
+				});
+			}
+			return sources;
+		},
+
+		pushConnectionAlteration: function (connections) {
+			var idFlowchart = connections.idFlowchart;
+			var _revert = {};
+			_revert[idFlowchart] = {};
+			_revert[idFlowchart][this.CONNECTION_ALTERATION] = connections;
+			_revert.push(_revert);
+		},
+
+		revert: function(flowchart) {
+			var last = _revert.pop();
+
+			if (last !== undefined) {
+				this._routeReversion(last);
+			}
+		},
+
+		undoRevert: function(flowchart) {
+			var idFlowchart = flowchart.getAttribute("data-flow-id");
+
+			var last = _undoRevert.pop();
+
+			if (last !== undefined) {
+				this._routeReversion(last);
+			}
+		},
+
+		_routeReversion: function(last) {
+			if (last[flow.Const.SHAPE_EVENT.ALTERATED]) {
+				var shapeData = last[flow.Const.SHAPE_EVENT.ALTERATED];
+				this._revertShapeState(shapeData);
+			}
+			else if (last[this.SHAPE_DELETION]) {
+				_revertShapeState(last[this.SHAPE_DELETION]);
+			}
+			else if (last[this.SHAPE_CREADTED]) {
+				_revertShapeCreation(last[this.SHAPE_CREADTED]);
+			}
+			else if (last[this.CONNECTION_ALTERATION]) {
+				_revertConnectionAlteration(last[this.CONNECTION_ALTERATION]);
+			}
+		},
+
+		_revertShapeState: function(shapeData) {
+			var shape = flow.findShapeById(shapeData.id);
+
+			if (shape !== null) {
+				this._revertShapeAlteration(shape, shapeData);
+			}
+			else {
+				shape = this._revertShapeDeletion(shapeData);
+			}
+
+			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+		},
+
+		_revertShapeCreation: function(data) {
+			var shapeHandler = flow.ShapeHandler;
+
+			var $shape = shapeHandler.findShapeById(data.id);
+
+			shapeHandler.ajaxDelete($shape[0]);
+			$shape.remove();
+		},
+
+		_revertShapeAlteration: function(shape, shapeData) {
+			this._setShapeProperties(shape, shapeData);
+			jsPlumb.repaint(shape);
+		},
+
+		_revertShapeDeletion: function(shapeData) {
+			var shape = flow.getShapeCloneByType(shapeData.type),
+				flowchart = flow.getCurrentDiagram();
+
+			flowchart.appendChild(shape);
+
+			this._setShapeProperties(shape, shapeData);
+
+			flow.makeShapeDraggable(shape, shapeData);
+
+			return shape;
+		},
+
+		_remakeConnections: function(shape, sourceConnections, targetConnections) {
+			var flowchart = shape.parentNode;
+
+			for (var id in sourceConnections) {
+				var label = sourceConnections[id].label,
+					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]'),
+					connExists = jsPlumb.getConnections({source: source, target: shape}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: source, target: shape, label: label});
+				}
+			}
+
+			for (var id in targetConnections) {
+				var label = targetConnections[id].label,
+					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+					connExists = jsPlumb.getConnections({source: shape, target: target}).length > 0;
+				if (!connExists) {
+					jsPlumb.connect({source: shape, target: target, label: label});
+				}
+			}
+		},
+
+		_revertConnectionState: function(data) {
+			var shapeHandler = flow.ShapeHandler;
+
+			var $source = shapeHandler.findShapeById(data.sourceId);
+			var $target = shapeHandler.findShapeById(data.targetId);
+			var value = (data.value !== "") ? data.value : "";
+
+			var connection = jsPlumb.connect({source: $source, target: $target});
+
+			var $flowchart = $source.parent();
+
+			shapeHandler.setConnectionLabel(connection, value, $source.parent(), $flowchart);
+
+			shapeHandler.ajaxSetConnection(connection.source, connection.target, value);
+		},
+
+		_revertConnectionAlteration: function(data) {
+			var created = data.createdConnectionInfo;
+			var deleted = data.deletedConnectionInfo;
+
+			if (created !== undefined) {
+				flow.ShapeHandler.deleteConnection(created.source, created.target);
+			}
+
+			if (deleted !== undefined) {
+				jsPlumb.connect({source: deleted.source, target: deleted.target});
+				flow.ShapeHandler.ajaxSetConnection(deleted.source, deleted.target, deleted.value);
+			}
+		},
+
+		_setShapeProperties: function(shape, shapeData) {
+			if (shapeData.width || shapeData.height) {
+				var innerImage = shape.querySelector('.shape.image');
+				innerImage.style.width = shapeData.width;
+				innerImage.style.height = shapeData.height;
+			}
+
+			if (shapeData.code) {
+				shape.querySelector('code').textContent = shapeData.code;
+			}
+
+			shape.style.top = shapeData.top;
+			shape.style.left = shapeData.left;
+			shape.setAttribute('data-flow-shape-id', shapeData.id);
+
+			shape.focus();
+		}
+	};
+
+	return flow;
+})(flow || {}, jsPlumb);
+
 var flow = (function(flow, doc) {
 	'use strict';
 
@@ -284,7 +505,7 @@ var flow = (function(flow, jsPlumb) {
 			['Arrow', {width: 25, length: 25, location: 1}]
 		];
 
-		jsPlumbDefaults.ReattachConnections = false;
+		jsPlumbDefaults.ReattachConnections = true;
 	};
 
 	return flow;
@@ -303,25 +524,41 @@ var flow = (function(flow, doc, jsPlumb) {
 	 * @returns {Object} the Shape Data (id, classes, top, targetsIds...)
 	 */
 	flow.getShapeData = function(shapeDOM) {
-		var connections = jsPlumb.getConnections({source: shapeDOM}),
+		var sourceConnections = jsPlumb.getConnections({target: shapeDOM}),
+			targetConnections = jsPlumb.getConnections({source: shapeDOM}),
+			shapeSourceConnections = {},
 			shapeTargetConnections = {},
-			shapeImage = shapeDOM.querySelector('.shape.image');
+			shapeImage = shapeDOM.querySelector('.shape.image'),
+			shapeCodeDOM = shapeDOM.querySelector('code'),
+			shapeText = '';
 
-		for (var i=connections.length; i--; ) {
-			var conn = connections[i];
+		//TODO move to method
+		for (var i=sourceConnections.length; i--; ) {
+			var conn = sourceConnections[i],
+				id = conn.source.getAttribute('data-flow-shape-id');
+			shapeSourceConnections[id]  = {
+				label: conn.getLabel()
+			};
+		}
 
-			var id = conn.target.getAttribute('data-flow-shape-id');
+		for (var i=targetConnections.length; i--; ) {
+			var conn = targetConnections[i],
+				id = conn.target.getAttribute('data-flow-shape-id');
 			shapeTargetConnections[id]  = {
 				label: conn.getLabel()
 			};
 		}
+		//\\
+
+		shapeText = shapeCodeDOM !== null ? shapeCodeDOM.textContent : shapeDOM.querySelector('input').value;
 
 		return {
 			id: shapeDOM.getAttribute('data-flow-shape-id'),
 			type: shapeDOM.getAttribute('data-flow-shape-type'),
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
-			code: shapeDOM.querySelector('code').textContent,
+			code: shapeText,
+			sourceConnections: shapeSourceConnections,
 			targetConnections: shapeTargetConnections,
 			width: shapeImage.style.width || null,
 			height: shapeImage.style.height || null
@@ -551,6 +788,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	StaticListeners._openDiagramsClick = function() {
+		var uploadInput = doc.getElementById('temp-upload');
+
 		Util.on(Cache.toolbarContainer, 'click', 'ul.flow.toolbar.list.open.diagram li a', function(event) {
 				event.preventDefault();
 				var result = flow.Alerts.confirm(
@@ -562,6 +801,18 @@ var flow = (function(flow, doc, jsPlumb) {
 				}
 		});
 
+		uploadInput.addEventListener('change', function(event) {
+			var selectedFile = uploadInput.files[0],
+				reader = new FileReader();
+
+			reader.onload = function() {
+				var text = reader.result;
+				flow.openDiagrams(text);
+			};
+
+			reader.readAsText(selectedFile);
+		}, false);
+
 		var _routeOpen = function() {
 			flow.closeAllDiagrams();
 
@@ -569,28 +820,7 @@ var flow = (function(flow, doc, jsPlumb) {
 
 			switch (openAs) {
 				case 'json-file':
-					var parent = this.parentNode;
-
-					parent.insertAdjacentHTML('beforeEnd', '<input id="temp-upload" type="file" />');
-
-					var uploadInput = parent.querySelector('#temp-upload');
-
-					uploadInput.click();
-
-					uploadInput.addEventListener('change', function(event) {
-						var selectedFile = uploadInput.files[0],
-							reader = new FileReader();
-
-						reader.onload = function() {
-							var text = reader.result;
-							flow.openDiagrams(text);
-						};
-
-						reader.readAsText(selectedFile);
-
-						parent.removeChild(this);
-					}, false);
-
+					Util.trigger('click', uploadInput);
 					break;
 				case 'local-storage':
 					var opened = flow.openLocallyStoredDiagrams();
@@ -803,12 +1033,13 @@ var flow = (function(flow, doc, jsPlumb) {
 				targetNodeName = event.target.nodeName.toLowerCase(),
 				isDel = event.keyCode === 46;
 
-            if (isDel && targetNodeName !== 'input') {
+            if (isDel && targetNodeName !== 'input') { // ignore "del" when in a shape input
                 flow.Selection.deleteSelectedItems();
+				flowchart.focus(); // after a deletion the flowchart loses focus
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				//flow.State.revert(flowchart);
+				flow.State.revert(); /// TODO
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
@@ -863,12 +1094,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._shapeAltered = function() {
 		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
-			var shape = event.target,
-				left = shape.style.left,
-				top = shape.style.top,
-				code = shape.querySelector('code').textContent;
-
-			//TODO
+			var shape = event.target;
+			flow.State.pushShapeAlteration(shape);
 		});
 	};
 
@@ -895,17 +1122,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-				jsPlumb.connect({
-					source: source,
-					target: target,
-					connector: jsPlumb.Defaults.Connector, // we call this "connector style"
-					parameters: {
-						connectorType: flow.currentConnectorType
-					},
-					label: '',
-					paintStyle: jsPlumb.Defaults.PaintStyle
-				});
-                return false;
+                return true;
             }
         });
     })();
@@ -1337,7 +1554,7 @@ flow.UI = {
 			inputEl = null;
 
 		codeEl = shape.querySelector('code');
-		oldText = codeEl.textContent;
+		oldText = codeEl.textContent.replace(/"/g, '&quot;'); // escape quotes
 
         codeEl.outerHTML = flow.Templates.getShapeInnerInput(oldText);
 
@@ -1362,7 +1579,13 @@ flow.UI = {
         });
 
 		var _removeInputFocus = function(event) {
-            this.outerHTML = flow.Templates.getShapeInnerCode(this.value); //Hidden again
+			var newText = this.value;
+
+			if (newText !== oldText) {
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			}
+
+            this.outerHTML = flow.Templates.getShapeInnerCode(newText); //Hidden again
 		};
     },
 
@@ -1437,20 +1660,20 @@ var flow = (function(flow) {
 	};
 
 	Const.DIAGRAM_EVENT = {
-		LOADED: 'loaded'
+		LOADED: 'diagram_loaded'
 	};
 
 	Const.SHAPE_EVENT = {
-		SELECTED: 'selected',
-		MOVED: 'moved',
-		DELETED: 'deleted',
-		ALTERATED: 'altered',
-		CREATED: 'created'
+		SELECTED: 'shape_selected',
+		MOVED: 'shape_moved',
+		DELETED: 'shape_deleted',
+		ALTERATED: 'shape_altered',
+		CREATED: 'shape_created'
 	};
 
 	Const.CONNECTION_EVENT = {
-		ALTERED: 'altered',
-		SELECTED: 'selected'
+		ALTERED: 'connection_altered',
+		SELECTED: 'connection_selected'
 	};
 
 	Const.CONNECTION_TYPE = {
@@ -1496,14 +1719,18 @@ var flow = (function(flow, doc, jsPlumb) {
 		if (_selectedElement) {
 			if (_selectedElement.type === 'shape') {
 				var shape = doc.getElementById(_selectedElement.id);
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
 				jsPlumb.detachAllConnections(shape);
 				flow.Util.remove(shape);
 			}
 			else {
-				var conn = jsPlumb.getConnections({
-					source: _selectedElement.from,
-					target: _selectedElement.to
-				})[0];
+				var shapeSource = doc.getElementById(_selectedElement.from),
+					conn = jsPlumb.getConnections({
+						source: _selectedElement.from,
+						target: _selectedElement.to
+					})[0];
+
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shapeSource);
 
 				jsPlumb.detach(conn);
 			}
@@ -1858,6 +2085,14 @@ var flow = (function(flow, doc, jsPlumb) {
 		};
 	})();
 
+	flow.findShapeById = function(idShape) {
+		return flow.getCurrentDiagram().querySelector('div.shape[data-flow-shape-id="' + idShape + '"]');
+	};
+
+	flow.getShapeCloneByType = function(type) {
+		return flow.Cache.shapeMenu.querySelector('div.shape[data-flow-shape-type="' + type + '"]').cloneNode(true);
+	};
+
 	/**
 	 * Creates a new diagram and append it to DOM.
 	 *
@@ -1907,25 +2142,37 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	flow.openLocallyStoredDiagrams = function() {
-		var text = window.localStorage.getItem('flow');
+		var opened = false,
+			text = window.localStorage.getItem('flow');
 		if (text !== null && text !== '') {
-			flow.openDiagrams(text);
-			return true;
+			opened = flow.openDiagrams(text);
 		}
-		return false;
+		return opened;
 	};
 
 	flow.openDiagrams = function(jsonDataAsText) {
-		var data = JSON.parse(jsonDataAsText),
-			diagrams = data.diagrams;
+		var data = {},
+			diagrams = {};
 
-		flow.Util.count = data.data.count + 1; // this prevents ID duplication !
+		try {
+			data = JSON.parse(jsonDataAsText);
+			diagrams = data.diagrams;
+		}
+		catch(e) {
+			flow.Alerts.showErrorMessage('Error, invalid data.');
+			flow.log(e);
+			return false;
+		}
+
+		flow.Util.count = data.data.count + 1; // prevents ID duplication !
 
 		for (var key in diagrams) {
 			var diagramData = diagrams[key];
 			flow.storeDiagramData(diagramData);
 			flow.recreateDiagramFromStoredData(diagramData.id);
 		};
+
+		return true;
 	};
 
 	flow.recreateDiagramFromStoredData = function(idDiagram) {
@@ -2030,6 +2277,69 @@ var flow = (function(flow, doc, jsPlumb) {
 		}
 	};
 
+	flow.makeShapeDraggable = function(shape, shapeData) {
+		shape.removeAttribute('id'); // ENSURE ID is empty. jsPlumb.draggable will create a new one
+
+		jsPlumb.draggable(shape, {
+			// containment: true, // block scroll
+			//filter: '.resize', // not working
+			//consumeFilteredEvents: true
+			start: function(params) {
+				var shape = params.el;
+
+				flow.Selection.addSelectedShape(shape);
+
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
+			},
+			drag: function(params) {
+				return 'TODO';
+
+				var shape = params.el,
+					flowchart = shape.parentNode,
+					left = parseInt(shape.style.left, 10) + shape.offsetWidth,
+					top = parseInt(shape.style.top, 10) + shape.offsetHeight,
+					flowchartHeight = flowchart.offsetHeight,
+					flowchartWidth = flowchart.offsetWidth,
+					flowchartScrollLeft = flowchart.scrollLeft,
+					flowchartScrollTop = flowchart.scrollTop,
+					flowchartBottomBorder = flowchartHeight + flowchart.scrollTop;
+
+
+				if (top >= flowchartBottomBorder) {
+					flowchart.scrollTop = flowchartScrollTop + (top - flowchartBottomBorder) * 4;
+				}
+
+				//TODO
+			}
+		});
+
+		if (shapeData.maxInputs > 0) {
+			jsPlumb.makeTarget(shape, {
+				maxConnections: shapeData.maxInputs,
+				isTarget: true
+			});
+		}
+		else if (shapeData.maxOutputs === -1) {
+			jsPlumb.makeTarget(shape, {
+				isTarget: true
+			});
+		}
+
+		if (shapeData.maxOutputs > 0) {
+			jsPlumb.makeSource(shape, {
+				maxConnections: shapeData.maxOutputs,
+				filter: '.connector',
+				isSource: true
+			});
+		}
+		else if (shapeData.maxOutputs === -1) {
+			jsPlumb.makeSource(shape, {
+				filter: '.connector',
+				isSource: true
+			});
+		}
+	};
+
 	var _makeDiagramDroppable = function(diagram) {
 		var k = jsPlumb._katavorio;
 		k.droppable(diagram, {
@@ -2064,49 +2374,10 @@ var flow = (function(flow, doc, jsPlumb) {
 	var _setupShape = function(shape) {
 		var shapeData = _getShapeData(shape);
 
-		shape.removeAttribute('id'); // ENSURE ID is empty. jsPlumb.draggable will create a new one
-
-		jsPlumb.draggable(shape, {
-			// containment: true, // block scroll
-			//filter: '.resize', // not working
-			//consumeFilteredEvents: true
-			start: function(params) {
-				var shape = params.el;
-
-				flow.Selection.addSelectedShape(shape);
-
-				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shape);
-			}
-		});
+		flow.makeShapeDraggable(shape, shapeData);
 
 		if (!shapeData.secondId) {
 			shape.setAttribute('data-flow-shape-id', flow.Util.getUniqueID(shapeData.type));
-		}
-
-		if (shapeData.maxInputs > 0) {
-			jsPlumb.makeTarget(shape, {
-				maxConnections: shapeData.maxInputs,
-				isTarget: true
-			});
-		}
-		else if (shapeData.maxOutputs === -1) {
-			jsPlumb.makeTarget(shape, {
-				isTarget: true
-			});
-		}
-
-		if (shapeData.maxOutputs > 0) {
-			jsPlumb.makeSource(shape, {
-				maxConnections: shapeData.maxOutputs,
-				filter: '.connector',
-				isSource: true
-			});
-		}
-		else if (shapeData.maxOutputs === -1) {
-			jsPlumb.makeSource(shape, {
-				filter: '.connector',
-				isSource: true
-			});
 		}
 	};
 

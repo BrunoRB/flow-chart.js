@@ -21,6 +21,7 @@
 }
 .flow.active.diagram > .flow.shape {
   position: absolute;
+  background-color: white;
 }
 .flow.active.diagram > .flow.shape:hover {
   border: 1px dashed #00b5ad;
@@ -146,7 +147,6 @@
 .flow.shape {
   text-align: center;
   outline: none;
-  background-color: white;
 }
 .flow.shape .shape.image {
   position: relative;
@@ -276,6 +276,9 @@
 #left-area .flow.toolbar.menu div.flow.toolbar.list.container ul.flow.toolbar.list a:hover {
   text-decoration: underline;
   color: #00b5ad;
+}
+#left-area .flow.toolbar.menu div.flow.toolbar.list.container #temp-upload {
+  display: none;
 }
 #right-area.flow.diagram.container {
   -moz-user-select: none;
