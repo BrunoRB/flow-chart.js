@@ -1,5 +1,5 @@
 
-var flow = (function(flow) {
+var flow = (function(flow, jsPlumb) {
 	'use strict';
 
 	var Util = flow.Util,
@@ -141,35 +141,22 @@ var flow = (function(flow) {
 
 			flow.makeShapeDraggable(shape, shapeData);
 
-			//TODO
-			//this._remakeConnections(shape, data.connectionsTargets, data.connectionsSources);
+			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 		},
 
-		_remakeConnections: function($shape, targetsData, sourcesData) {
-			var shapeHandler = flow.ShapeHandler;
+		_remakeConnections: function(shape, sourceConnections, targetConnections) {
+			var flowchart = shape.parentNode;
 
-			var $flowchart = $shape.parent();
-
-			var targetsLength = targetsData.length;
-			if (targetsLength > 0) {
-				for (var i = 0; i < targetsLength; i++) {
-					var targetData = targetsData[i];
-					var $target = shapeHandler.findShapeById(targetData.id);
-					var connection = jsPlumb.connect({source: $shape, target: $target});
-					shapeHandler.setConnectionLabel(connection, targetData.label, $flowchart);
-					shapeHandler.ajaxSetConnection($shape[0], $target[0], targetData.label);
-				}
+			for (var id in sourceConnections) {
+				var label = sourceConnections[id].label,
+					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+				jsPlumb.connect({source: source, target: shape, label: label});
 			}
 
-			var sourcesLength = sourcesData.length;
-			if (sourcesLength > 0) {
-				for (var i = 0; i < sourcesLength; i++) {
-					var sourceData = sourcesData[i];
-					var $source = shapeHandler.findShapeById(sourceData.id);
-					var connection = jsPlumb.connect({source: $source, target: $shape});
-					shapeHandler.setConnectionLabel(connection, sourceData.label, $flowchart);
-					shapeHandler.ajaxSetConnection($source[0], $shape[0], sourceData.label);
-				}
+			for (var id in targetConnections) {
+				var label = targetConnections[id].label,
+					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+				jsPlumb.connect({source: shape, target: target, label: label});
 			}
 		},
 
@@ -223,4 +210,4 @@ var flow = (function(flow) {
 	};
 
 	return flow;
-})(flow || {});
+})(flow || {}, jsPlumb);

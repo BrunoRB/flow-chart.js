@@ -114,7 +114,7 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 	return flow;
 })(flow || {}, document, jsPlumbUtil);
 
-var flow = (function(flow) {
+var flow = (function(flow, jsPlumb) {
 	'use strict';
 
 	var Util = flow.Util,
@@ -256,35 +256,22 @@ var flow = (function(flow) {
 
 			flow.makeShapeDraggable(shape, shapeData);
 
-			//TODO
-			//this._remakeConnections(shape, data.connectionsTargets, data.connectionsSources);
+			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 		},
 
-		_remakeConnections: function($shape, targetsData, sourcesData) {
-			var shapeHandler = flow.ShapeHandler;
+		_remakeConnections: function(shape, sourceConnections, targetConnections) {
+			var flowchart = shape.parentNode;
 
-			var $flowchart = $shape.parent();
-
-			var targetsLength = targetsData.length;
-			if (targetsLength > 0) {
-				for (var i = 0; i < targetsLength; i++) {
-					var targetData = targetsData[i];
-					var $target = shapeHandler.findShapeById(targetData.id);
-					var connection = jsPlumb.connect({source: $shape, target: $target});
-					shapeHandler.setConnectionLabel(connection, targetData.label, $flowchart);
-					shapeHandler.ajaxSetConnection($shape[0], $target[0], targetData.label);
-				}
+			for (var id in sourceConnections) {
+				var label = sourceConnections[id].label,
+					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+				jsPlumb.connect({source: source, target: shape, label: label});
 			}
 
-			var sourcesLength = sourcesData.length;
-			if (sourcesLength > 0) {
-				for (var i = 0; i < sourcesLength; i++) {
-					var sourceData = sourcesData[i];
-					var $source = shapeHandler.findShapeById(sourceData.id);
-					var connection = jsPlumb.connect({source: $source, target: $shape});
-					shapeHandler.setConnectionLabel(connection, sourceData.label, $flowchart);
-					shapeHandler.ajaxSetConnection($source[0], $shape[0], sourceData.label);
-				}
+			for (var id in targetConnections) {
+				var label = targetConnections[id].label,
+					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+				jsPlumb.connect({source: shape, target: target, label: label});
 			}
 		},
 
@@ -338,7 +325,7 @@ var flow = (function(flow) {
 	};
 
 	return flow;
-})(flow || {});
+})(flow || {}, jsPlumb);
 
 var flow = (function(flow, doc) {
 	'use strict';
@@ -529,20 +516,31 @@ var flow = (function(flow, doc, jsPlumb) {
 	 * @returns {Object} the Shape Data (id, classes, top, targetsIds...)
 	 */
 	flow.getShapeData = function(shapeDOM) {
-		var connections = jsPlumb.getConnections({source: shapeDOM}),
+		var sourceConnections = jsPlumb.getConnections({target: shapeDOM}),
+			targetConnections = jsPlumb.getConnections({source: shapeDOM}),
+			shapeSourceConnections = {},
 			shapeTargetConnections = {},
 			shapeImage = shapeDOM.querySelector('.shape.image'),
 			shapeCodeDOM = shapeDOM.querySelector('code'),
 			shapeText = '';
 
-		for (var i=connections.length; i--; ) {
-			var conn = connections[i];
+		//TODO move to method
+		for (var i=sourceConnections.length; i--; ) {
+			var conn = sourceConnections[i],
+				id = conn.source.getAttribute('data-flow-shape-id');
+			shapeSourceConnections[id]  = {
+				label: conn.getLabel()
+			};
+		}
 
-			var id = conn.target.getAttribute('data-flow-shape-id');
+		for (var i=targetConnections.length; i--; ) {
+			var conn = targetConnections[i],
+				id = conn.target.getAttribute('data-flow-shape-id');
 			shapeTargetConnections[id]  = {
 				label: conn.getLabel()
 			};
 		}
+		//\\
 
 		shapeText = shapeCodeDOM !== null ? shapeCodeDOM.textContent : shapeDOM.querySelector('input').value;
 
@@ -552,6 +550,7 @@ var flow = (function(flow, doc, jsPlumb) {
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
 			code: shapeText,
+			sourceConnections: shapeSourceConnections,
 			targetConnections: shapeTargetConnections,
 			width: shapeImage.style.width || null,
 			height: shapeImage.style.height || null
@@ -1028,6 +1027,7 @@ var flow = (function(flow, doc, jsPlumb) {
 
             if (isDel && targetNodeName !== 'input') {
                 flow.Selection.deleteSelectedItems();
+				flowchart.focus(); // after a deletion the flowchart loses focus
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');

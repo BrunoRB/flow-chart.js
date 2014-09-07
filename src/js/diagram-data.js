@@ -12,20 +12,31 @@ var flow = (function(flow, doc, jsPlumb) {
 	 * @returns {Object} the Shape Data (id, classes, top, targetsIds...)
 	 */
 	flow.getShapeData = function(shapeDOM) {
-		var connections = jsPlumb.getConnections({source: shapeDOM}),
+		var sourceConnections = jsPlumb.getConnections({target: shapeDOM}),
+			targetConnections = jsPlumb.getConnections({source: shapeDOM}),
+			shapeSourceConnections = {},
 			shapeTargetConnections = {},
 			shapeImage = shapeDOM.querySelector('.shape.image'),
 			shapeCodeDOM = shapeDOM.querySelector('code'),
 			shapeText = '';
 
-		for (var i=connections.length; i--; ) {
-			var conn = connections[i];
+		//TODO move to method
+		for (var i=sourceConnections.length; i--; ) {
+			var conn = sourceConnections[i],
+				id = conn.source.getAttribute('data-flow-shape-id');
+			shapeSourceConnections[id]  = {
+				label: conn.getLabel()
+			};
+		}
 
-			var id = conn.target.getAttribute('data-flow-shape-id');
+		for (var i=targetConnections.length; i--; ) {
+			var conn = targetConnections[i],
+				id = conn.target.getAttribute('data-flow-shape-id');
 			shapeTargetConnections[id]  = {
 				label: conn.getLabel()
 			};
 		}
+		//\\
 
 		shapeText = shapeCodeDOM !== null ? shapeCodeDOM.textContent : shapeDOM.querySelector('input').value;
 
@@ -35,6 +46,7 @@ var flow = (function(flow, doc, jsPlumb) {
 			top: shapeDOM.style.top,
 			left: shapeDOM.style.left,
 			code: shapeText,
+			sourceConnections: shapeSourceConnections,
 			targetConnections: shapeTargetConnections,
 			width: shapeImage.style.width || null,
 			height: shapeImage.style.height || null

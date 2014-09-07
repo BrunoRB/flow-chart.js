@@ -272,6 +272,7 @@ var flow = (function(flow, doc, jsPlumb) {
 
             if (isDel && targetNodeName !== 'input') {
                 flow.Selection.deleteSelectedItems();
+				flowchart.focus(); // after a deletion the flowchart loses focus
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
