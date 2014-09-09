@@ -34,8 +34,8 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 		return element.dispatchEvent(event);
 	};
 
-	Util.trigger = function(eventType, element) {
-		mottle.trigger(element, eventType);
+	Util.trigger = function(eventType, element, extra) {
+		mottle.trigger(element, eventType, undefined, extra);
 		return this;
 	};
 

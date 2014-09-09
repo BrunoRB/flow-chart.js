@@ -276,7 +276,7 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				flow.State.revert(); /// TODO
+				flow.State.undo(); /// TODO
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
@@ -331,8 +331,10 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._shapeAltered = function() {
 		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
-			var shape = event.target;
-			flow.State.pushShapeAlteration(shape);
+			var shape = event.target,
+				extraData = event.payload;
+
+			flow.State.pushShapeAlteration(shape, extraData);
 		});
 	};
 
@@ -360,6 +362,22 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else {
                 return true;
+            }
+        });
+    })();
+
+	(function _connectionMaded() {
+        jsPlumb.bind("connection", function(info, originalEvent) {
+            if (originalEvent !== undefined) { // acontece no load (conexão estabelecida programaticamente)
+                var connection = info.connection,
+					sourceShape = connection.source;
+
+                if (connection.suspendedElement === undefined) { // new connection
+					//TODO flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+                }
+				else { // connection moved
+					// TODOflow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+				}
             }
         });
     })();

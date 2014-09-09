@@ -311,6 +311,8 @@ var flow = (function(flow, doc, jsPlumb) {
 					diagram.appendChild(shapeClone);
 
 					_setupShape(shapeClone);
+
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shapeClone, 'created');
 				}
 				else {
 					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
