@@ -34,8 +34,8 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 		return element.dispatchEvent(event);
 	};
 
-	Util.trigger = function(eventType, element) {
-		mottle.trigger(element, eventType);
+	Util.trigger = function(eventType, element, extra) {
+		mottle.trigger(element, eventType, undefined, extra);
 		return this;
 	};
 
@@ -117,8 +117,7 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 var flow = (function(flow, jsPlumb) {
 	'use strict';
 
-	var Util = flow.Util,
-		_revert = [],
+	var _revert = [],
 		_undoRevert = [];
 
 	flow.State = {
@@ -127,77 +126,21 @@ var flow = (function(flow, jsPlumb) {
 			_undoRevert = [];
 		},
 
-		pushShapeAlteration: function(shape) {
-			var obj = {};
-			obj[flow.Const.SHAPE_EVENT.ALTERATED] = flow.getShapeData(shape);
-			_revert.push(obj);
+		pushShapeAlteration: function(shape, extraData) {
+			var shapeData = flow.getShapeData(shape);
+			shapeData.isNew = extraData === 'created';
+			_revert.push(shapeData);
 		},
 
-		pushShapeDeletion: function(shape) {
-			var obj = {};
-			obj[Const.SHAPE_EVENT.DELETED] = Util.extend(
-				flow.getShapeData(shape),
-				{connectionsTargets: this._getShapeTargetsOfShapeConnections(shape)},
-				{connectionsSources: this._getShapeSourcesOfShapeConnections(shape)}
-			);
-
-			_revert.push(obj);
-		},
-
-		pushShapeCreated: function($shape) {
-			var _revert = _revert;
-
-			var idFlowchart = $shape.parent().attr("data-flow-id");
-			var obj = {};
-			obj[idFlowchart] = {};
-			obj[idFlowchart][this.SHAPE_CREADTED] = flow.ShapeHandler.getShapeData($shape);
-
-			_revert.push(obj);
-		},
-
-		_getShapeTargetsOfShapeConnections: function(shape) {
-			var connections = jsPlumb.getConnections({source: shape});
-			var targets = [];
-			for (var i = 0; i < connections.length; i++) {
-				targets.push({
-					id: connections[i].target.getAttribute("data-flow-id"),
-					label: $(connections[i].getLabel()).text() // TODO
-				});
-			}
-			return targets;
-		},
-
-		_getShapeSourcesOfShapeConnections: function(shape) {
-			var connections = jsPlumb.getConnections({target: shape});
-			var sources = [];
-			for (var i = 0; i < connections.length; i++) {
-				sources.push({
-					id: connections[i].source.getAttribute("data-flow-id"),
-					label: $(connections[i].getLabel()).text() // TODO
-				});
-			}
-			return sources;
-		},
-
-		pushConnectionAlteration: function (connections) {
-			var idFlowchart = connections.idFlowchart;
-			var _revert = {};
-			_revert[idFlowchart] = {};
-			_revert[idFlowchart][this.CONNECTION_ALTERATION] = connections;
-			_revert.push(_revert);
-		},
-
-		revert: function(flowchart) {
+		undo: function() {
 			var last = _revert.pop();
 
 			if (last !== undefined) {
-				this._routeReversion(last);
+				this._revertShapeState(last);
 			}
 		},
 
 		undoRevert: function(flowchart) {
-			var idFlowchart = flowchart.getAttribute("data-flow-id");
-
 			var last = _undoRevert.pop();
 
 			if (last !== undefined) {
@@ -205,42 +148,31 @@ var flow = (function(flow, jsPlumb) {
 			}
 		},
 
-		_routeReversion: function(last) {
-			if (last[flow.Const.SHAPE_EVENT.ALTERATED]) {
-				var shapeData = last[flow.Const.SHAPE_EVENT.ALTERATED];
-				this._revertShapeState(shapeData);
-			}
-			else if (last[this.SHAPE_DELETION]) {
-				_revertShapeState(last[this.SHAPE_DELETION]);
-			}
-			else if (last[this.SHAPE_CREADTED]) {
-				_revertShapeCreation(last[this.SHAPE_CREADTED]);
-			}
-			else if (last[this.CONNECTION_ALTERATION]) {
-				_revertConnectionAlteration(last[this.CONNECTION_ALTERATION]);
-			}
-		},
-
 		_revertShapeState: function(shapeData) {
-			var shape = flow.findShapeById(shapeData.id);
+			var shape = flow.findShapeById(shapeData.id),
+				flowchart = null;
 
-			if (shape !== null) {
+			if (shapeData.isNew === true) { // shape created, this undo action is going to delete it
+				flowchart = shape.parentNode;
+				this._revertShapeCreation(shape);
+				flowchart.focus(); // focus so we cant continue to revert
+			}
+			else if (shape !== null) {
 				this._revertShapeAlteration(shape, shapeData);
+				this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 			}
 			else {
 				shape = this._revertShapeDeletion(shapeData);
+				this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 			}
-
-			this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
 		},
 
-		_revertShapeCreation: function(data) {
-			var shapeHandler = flow.ShapeHandler;
-
-			var $shape = shapeHandler.findShapeById(data.id);
-
-			shapeHandler.ajaxDelete($shape[0]);
-			$shape.remove();
+		_revertShapeCreation: function(shape) {
+			if (shape.classList.contains('selected')) { // if this shape is selected right now
+				flow.Selection.unselectShapes(); // then unselect before delete
+			}
+			jsPlumb.detachAllConnections(shape);
+			flow.Util.remove(shape);
 		},
 
 		_revertShapeAlteration: function(shape, shapeData) {
@@ -280,36 +212,6 @@ var flow = (function(flow, jsPlumb) {
 				if (!connExists) {
 					jsPlumb.connect({source: shape, target: target, label: label});
 				}
-			}
-		},
-
-		_revertConnectionState: function(data) {
-			var shapeHandler = flow.ShapeHandler;
-
-			var $source = shapeHandler.findShapeById(data.sourceId);
-			var $target = shapeHandler.findShapeById(data.targetId);
-			var value = (data.value !== "") ? data.value : "";
-
-			var connection = jsPlumb.connect({source: $source, target: $target});
-
-			var $flowchart = $source.parent();
-
-			shapeHandler.setConnectionLabel(connection, value, $source.parent(), $flowchart);
-
-			shapeHandler.ajaxSetConnection(connection.source, connection.target, value);
-		},
-
-		_revertConnectionAlteration: function(data) {
-			var created = data.createdConnectionInfo;
-			var deleted = data.deletedConnectionInfo;
-
-			if (created !== undefined) {
-				flow.ShapeHandler.deleteConnection(created.source, created.target);
-			}
-
-			if (deleted !== undefined) {
-				jsPlumb.connect({source: deleted.source, target: deleted.target});
-				flow.ShapeHandler.ajaxSetConnection(deleted.source, deleted.target, deleted.value);
 			}
 		},
 
@@ -437,6 +339,8 @@ var flow = (function(flow, jsPlumb) {
 		_setJsPlumbDefaults();
 
 		_uiDefaults();
+
+		_examples();
 	};
 
 	var _uiDefaults = function() {
@@ -506,6 +410,14 @@ var flow = (function(flow, jsPlumb) {
 		];
 
 		jsPlumbDefaults.ReattachConnections = true;
+	};
+
+	var _examples = function() {
+		var decisionExample = JSON.stringify({"diagrams":{"Newdiagram-1-1-1-4-4-4-1-1-2-3-2-1":{"id":"Newdiagram-1-1-1-4-4-4-1-1-2-3-2-1-1","name":"Example 3: decision","shapes":[{"id":"process-8","type":"process","top":"57px","left":"186px","code":"x = 10","sourceConnections":{"begin-2":{"label":null}},"targetConnections":{"decision-3":{"label":null}},"width":null,"height":null},{"id":"end-7","type":"end","top":"227px","left":"1087px","code":"","sourceConnections":{"connector-6":{"label":null}},"targetConnections":{},"width":null,"height":null},{"id":"connector-6","type":"connector","top":"318px","left":"816px","code":"","sourceConnections":{"display-5":{"label":null},"display-4":{"label":null}},"targetConnections":{"end-7":{"label":null}},"width":null,"height":null},{"id":"display-5","type":"display","top":"337px","left":"400px","code":"\"not\"","sourceConnections":{"decision-3":{"label":"<p id='jsPlumb_1_9_jsPlumb_1_11' class='connection label overlay' style='top:;left:;' >false</p>"}},"targetConnections":{"connector-6":{"label":null}},"width":null,"height":null},{"id":"display-4","type":"display","top":"66px","left":"791px","code":"\"x is 10\"","sourceConnections":{"decision-3":{"label":"<p id='jsPlumb_1_9_jsPlumb_1_10' class='connection label overlay' style='top:;left:;' >true</p>"}},"targetConnections":{"connector-6":{"label":null}},"width":null,"height":null},{"id":"decision-3","type":"decision","top":"104px","left":"467px","code":"x == 10","sourceConnections":{"process-8":{"label":null}},"targetConnections":{"display-5":{"label":"<p id='jsPlumb_1_9_jsPlumb_1_11' class='connection label overlay' style='top:;left:;' >false</p>"},"display-4":{"label":"<p id='jsPlumb_1_9_jsPlumb_1_10' class='connection label overlay' style='top:;left:;' >true</p>"}},"width":null,"height":null},{"id":"begin-2","type":"begin","top":"225px","left":"69px","code":"","sourceConnections":{},"targetConnections":{"process-8":{"label":null}},"width":null,"height":null}]},"Newdiagram-27-2-3-2":{"id":"Newdiagram-27-2-3-2-2","name":"Example 2: User input","shapes":[{"id":"end-31","type":"end","top":"684px","left":"1914px","code":"","sourceConnections":{"display-30":{"label":null}},"targetConnections":{},"width":null,"height":null},{"id":"display-30","type":"display","top":"695px","left":"1701px","code":"someVar","sourceConnections":{"manual_input-29":{"label":null}},"targetConnections":{"end-31":{"label":null}},"width":null,"height":null},{"id":"manual_input-29","type":"manual_input","top":"680px","left":"1419px","code":"someVar","sourceConnections":{"begin-28":{"label":null}},"targetConnections":{"display-30":{"label":null}},"width":null,"height":null},{"id":"begin-28","type":"begin","top":"542px","left":"1293px","code":"","sourceConnections":{},"targetConnections":{"manual_input-29":{"label":null}},"width":null,"height":null}]},"Newdiagram-20-2-1-1-1-3":{"id":"Newdiagram-20-2-1-1-1-3-3","name":"Example 1: Hello World","shapes":[{"id":"end-26","type":"end","top":"714px","left":"1860px","code":"","sourceConnections":{"display-25":{"label":null}},"targetConnections":{},"width":null,"height":null},{"id":"display-25","type":"display","top":"756px","left":"1467px","code":"x + \"World\"","sourceConnections":{"process-24":{"label":null}},"targetConnections":{"end-26":{"label":null}},"width":null,"height":null},{"id":"process-24","type":"process","top":"597px","left":"1439px","code":"x <- \"Hello \"","sourceConnections":{"begin-23":{"label":null}},"targetConnections":{"display-25":{"label":null}},"width":"126px","height":"48px"},{"id":"begin-23","type":"begin","top":"543px","left":"1189px","code":"","sourceConnections":{},"targetConnections":{"process-24":{"label":null}},"width":null,"height":null}]}},"data":{"count":35}});
+
+		if (localStorage.getItem('flow') === null) {
+			localStorage.setItem('flow', decisionExample);
+		}
 	};
 
 	return flow;
@@ -1039,7 +951,7 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				flow.State.revert(); /// TODO
+				flow.State.undo(); /// TODO
             }
             else if (event.keyCode === 89 && event.ctrlKey) {
                 flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
@@ -1094,8 +1006,10 @@ var flow = (function(flow, doc, jsPlumb) {
 	StaticListeners._shapeAltered = function() {
 		var ev = flow.Const.SHAPE_EVENT.ALTERATED;
 		Util.on(Cache.diagramContainer, ev, 'div.shape', function(event) {
-			var shape = event.target;
-			flow.State.pushShapeAlteration(shape);
+			var shape = event.target,
+				extraData = event.payload;
+
+			flow.State.pushShapeAlteration(shape, extraData);
 		});
 	};
 
@@ -1123,6 +1037,22 @@ var flow = (function(flow, doc, jsPlumb) {
             }
             else {
                 return true;
+            }
+        });
+    })();
+
+	(function _connectionMaded() {
+        jsPlumb.bind("connection", function(info, originalEvent) {
+            if (originalEvent !== undefined) { // acontece no load (conexão estabelecida programaticamente)
+                var connection = info.connection,
+					sourceShape = connection.source;
+
+                if (connection.suspendedElement === undefined) { // new connection
+					//TODO flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+                }
+				else { // connection moved
+					// TODOflow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+				}
             }
         });
     })();
@@ -2359,6 +2289,8 @@ var flow = (function(flow, doc, jsPlumb) {
 					diagram.appendChild(shapeClone);
 
 					_setupShape(shapeClone);
+
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, shapeClone, 'created');
 				}
 				else {
 					flow.Alerts.showWarningMessage('You cannot create more shapes of this type');
