@@ -344,12 +344,10 @@ var flow = (function(flow, doc, jsPlumb) {
 				target = doc.getElementById(info.targetId);
 
             var reverseConn = jsPlumb.getConnections({source: target, target: source}), // conns provenient from target
-				conn = jsPlumb.getConnections({source: source, target: target}), // conns provenient from source
-				sourceType = source.getAttribute('data-flow-shape-type'),
-				targetType = target.getAttribute('data-flow-shape-type');
+				conn = jsPlumb.getConnections({source: source, target: target}); // conns provenient from source
 
 			if (source === target) { // recursive conn, prohibited. TODO this CAN happen on some elements, how to allow?
-                flow.Alerts.showWarningMessage('Recursive connection isn\'t allowed');
+                flow.Alerts.showWarningMessage('Recursive connections aren\'t allowed');
                 return false;
             }
             else if (reverseConn.length > 0) { // A-B B-A conn, prohibited TODO any reason to allow this?

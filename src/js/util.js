@@ -108,7 +108,7 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 	};
 
 	Util.isNumber = function(el) {
-		return jsPlumbUtil.isNumber(el);
+		return !window.isNaN(el);
 	};
 
 	return flow;

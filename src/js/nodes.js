@@ -170,7 +170,7 @@ var flow = (function(flow, jsPlumb) {
 			}
 			catch (e) {
 				flow.log(e);
-				flow.UI.markFailure("Erro de sintaxe", this.selector);
+				flow.UI.markFailure('Syntax error', this.selector);
 			}
 
 			return this.getNextNodeSelector();
