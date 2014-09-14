@@ -108,7 +108,11 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 	};
 
 	Util.isNumber = function(el) {
-		return jsPlumbUtil.isNumber(el);
+		return !window.isNaN(el);
+	};
+
+	Util.clone = function(obj) {
+		return jsPlumbUtil.clone(obj);
 	};
 
 	return flow;
@@ -117,121 +121,150 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 var flow = (function(flow, jsPlumb) {
 	'use strict';
 
-	var _revert = [],
+	flow.State = {};
+
+	var State = flow.State,
+		_revert = [],
 		_undoRevert = [];
 
-	flow.State = {
-		cleanState: function() {
-			_revert = [];
-			_undoRevert = [];
-		},
+	State.cleanState = function() {
+		_revert = [];
+		_undoRevert = [];
+	};
 
-		pushShapeAlteration: function(shape, extraData) {
-			var shapeData = flow.getShapeData(shape);
-			shapeData.isNew = extraData === 'created';
-			_revert.push(shapeData);
-		},
+	State.cleanRedoState = function() {
+		_undoRevert = [];
+	};
 
-		undo: function() {
-			var last = _revert.pop();
+	State.pushShapeAlteration = function(shape, extraData) {
+		var shapeData = flow.getShapeData(shape);
+		shapeData.isNew = extraData === 'created';
+		_revert.push(shapeData);
+	};
 
-			if (last !== undefined) {
-				this._revertShapeState(last);
-			}
-		},
+	State.undo = function() {
+		var last = _revert.pop();
+		if (last !== undefined) {
+			var shape = flow.findShapeById(last.id),
+				data = null;
 
-		undoRevert: function(flowchart) {
-			var last = _undoRevert.pop();
-
-			if (last !== undefined) {
-				this._routeReversion(last);
-			}
-		},
-
-		_revertShapeState: function(shapeData) {
-			var shape = flow.findShapeById(shapeData.id),
-				flowchart = null;
-
-			if (shapeData.isNew === true) { // shape created, this undo action is going to delete it
-				flowchart = shape.parentNode;
-				this._revertShapeCreation(shape);
-				flowchart.focus(); // focus so we cant continue to revert
-			}
-			else if (shape !== null) {
-				this._revertShapeAlteration(shape, shapeData);
-				this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+			if (shape) {
+				data = flow.getShapeData(shape);
 			}
 			else {
-				shape = this._revertShapeDeletion(shapeData);
-				this._remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
-			}
-		},
-
-		_revertShapeCreation: function(shape) {
-			if (shape.classList.contains('selected')) { // if this shape is selected right now
-				flow.Selection.unselectShapes(); // then unselect before delete
-			}
-			jsPlumb.detachAllConnections(shape);
-			flow.Util.remove(shape);
-		},
-
-		_revertShapeAlteration: function(shape, shapeData) {
-			this._setShapeProperties(shape, shapeData);
-			jsPlumb.repaint(shape);
-		},
-
-		_revertShapeDeletion: function(shapeData) {
-			var shape = flow.getShapeCloneByType(shapeData.type),
-				flowchart = flow.getCurrentDiagram();
-
-			flowchart.appendChild(shape);
-
-			this._setShapeProperties(shape, shapeData);
-
-			flow.makeShapeDraggable(shape, shapeData);
-
-			return shape;
-		},
-
-		_remakeConnections: function(shape, sourceConnections, targetConnections) {
-			var flowchart = shape.parentNode;
-
-			for (var id in sourceConnections) {
-				var label = sourceConnections[id].label,
-					source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]'),
-					connExists = jsPlumb.getConnections({source: source, target: shape}).length > 0;
-				if (!connExists) {
-					jsPlumb.connect({source: source, target: shape, label: label});
-				}
+				data = flow.Util.clone(last);
+				data.isNew = true;
 			}
 
-			for (var id in targetConnections) {
-				var label = targetConnections[id].label,
-					target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
-					connExists = jsPlumb.getConnections({source: shape, target: target}).length > 0;
-				if (!connExists) {
-					jsPlumb.connect({source: shape, target: target, label: label});
-				}
-			}
-		},
+			_undoRevert.push(data);
 
-		_setShapeProperties: function(shape, shapeData) {
-			if (shapeData.width || shapeData.height) {
-				var innerImage = shape.querySelector('.shape.image');
-				innerImage.style.width = shapeData.width;
-				innerImage.style.height = shapeData.height;
-			}
-
-			if (shapeData.code) {
-				shape.querySelector('code').textContent = shapeData.code;
-			}
-
-			shape.style.top = shapeData.top;
-			shape.style.left = shapeData.left;
-			shape.setAttribute('data-flow-shape-id', shapeData.id);
-
-			shape.focus();
+			_revertShapeState(last);
 		}
+	};
+
+	State.redo = function() {
+		var last = _undoRevert.pop();
+		if (last !== undefined) {
+			_revertShapeState(last);
+		}
+	};
+
+	var _revertShapeState = function(shapeData) {
+		var shape = flow.findShapeById(shapeData.id),
+			flowchart = null;
+
+		if (shapeData.isNew === true) { // shape created, this undo action is going to delete it
+			flowchart = shape.parentNode;
+			_revertShapeCreation(shape);
+			flowchart.focus(); // focus so we cant continue to revert
+		}
+		else if (shape !== null) {
+			_revertShapeAlteration(shape, shapeData);
+			_remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+		}
+		else {
+			shape = _revertShapeDeletion(shapeData);
+			_remakeConnections(shape, shapeData.sourceConnections, shapeData.targetConnections);
+		}
+	};
+
+	var _revertShapeCreation = function(shape) {
+		if (shape.classList.contains('selected')) { // if this shape is selected right now
+			flow.Selection.unselectShapes(); // then unselect before delete
+		}
+		jsPlumb.detachAllConnections(shape);
+		flow.Util.remove(shape);
+	};
+
+	var _revertShapeAlteration = function(shape, shapeData) {
+		_setShapeProperties(shape, shapeData);
+		jsPlumb.repaint(shape);
+	};
+
+	var _revertShapeDeletion = function(shapeData) {
+		var shape = flow.getShapeCloneByType(shapeData.type),
+			flowchart = flow.getCurrentDiagram();
+
+		flowchart.appendChild(shape);
+
+		_setShapeProperties(shape, shapeData);
+
+		flow.makeShapeDraggable(shape, shapeData);
+
+		return shape;
+	};
+
+	var _remakeConnections = function(shape, sourceConnections, targetConnections) {
+		var flowchart = shape.parentNode;
+
+		// detach connections
+		var currentSourceConns = jsPlumb.getConnections({source: shape});
+		for (var i=currentSourceConns.length; i--; ) {
+			var conn = currentSourceConns[i],
+				connFlowId = conn.source.getAttribute('data-flow-id');
+			if (!(connFlowId in sourceConnections)) {
+				jsPlumb.detach(conn);
+			}
+		}
+		// end detach
+
+		// remake connections
+		for (var id in sourceConnections) {
+			var label = sourceConnections[id].label,
+				source = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]'),
+				connExists = jsPlumb.getConnections({source: source, target: shape}).length > 0;
+			if (!connExists) {
+				jsPlumb.connect({source: source, target: shape, label: label});
+			}
+		}
+
+		for (var id in targetConnections) {
+			var label = targetConnections[id].label,
+				target = flowchart.querySelector('div.shape[data-flow-shape-id="' + id + '"]');
+				connExists = jsPlumb.getConnections({source: shape, target: target}).length > 0;
+			if (!connExists) {
+				jsPlumb.connect({source: shape, target: target, label: label});
+			}
+		}
+		//end remake
+	};
+
+	var _setShapeProperties = function(shape, shapeData) {
+		if (shapeData.width || shapeData.height) {
+			var innerImage = shape.querySelector('.shape.image');
+			innerImage.style.width = shapeData.width;
+			innerImage.style.height = shapeData.height;
+		}
+
+		if (shapeData.code) {
+			shape.querySelector('code').textContent = shapeData.code;
+		}
+
+		shape.style.top = shapeData.top;
+		shape.style.left = shapeData.left;
+		shape.setAttribute('data-flow-shape-id', shapeData.id);
+
+		shape.focus();
 	};
 
 	return flow;
@@ -455,7 +488,10 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		for (var i=targetConnections.length; i--; ) {
 			var conn = targetConnections[i],
-				id = conn.target.getAttribute('data-flow-shape-id');
+				// when you move a conn, target is a invalid el so we need t use the .suspendedElement
+				target = conn.suspendedElement || conn.target,
+				id = target.getAttribute('data-flow-shape-id');
+
 			shapeTargetConnections[id]  = {
 				label: conn.getLabel()
 			};
@@ -947,16 +983,15 @@ var flow = (function(flow, doc, jsPlumb) {
 
             if (isDel && targetNodeName !== 'input') { // ignore "del" when in a shape input
                 flow.Selection.deleteSelectedItems();
-				flowchart.focus(); // after a deletion the flowchart loses focus
+				flowchart.focus(); // after a deletion the flowchart lose it's focus
+            }
+			else if (event.keyCode === 90 && event.ctrlKey && event.shiftKey) {
+                flow.State.redo();
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
-                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				flow.State.undo(); /// TODO
+				flow.State.undo();
             }
-            else if (event.keyCode === 89 && event.ctrlKey) {
-                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-                //flow.State.undoRevert(flowchart);
-            }
+
         });
     };
 
@@ -1010,6 +1045,8 @@ var flow = (function(flow, doc, jsPlumb) {
 				extraData = event.payload;
 
 			flow.State.pushShapeAlteration(shape, extraData);
+
+			flow.State.cleanRedoState();  // after an element change we have a redo invalidation
 		});
 	};
 
@@ -1019,12 +1056,10 @@ var flow = (function(flow, doc, jsPlumb) {
 				target = doc.getElementById(info.targetId);
 
             var reverseConn = jsPlumb.getConnections({source: target, target: source}), // conns provenient from target
-				conn = jsPlumb.getConnections({source: source, target: target}), // conns provenient from source
-				sourceType = source.getAttribute('data-flow-shape-type'),
-				targetType = target.getAttribute('data-flow-shape-type');
+				conn = jsPlumb.getConnections({source: source, target: target}); // conns provenient from source
 
 			if (source === target) { // recursive conn, prohibited. TODO this CAN happen on some elements, how to allow?
-                flow.Alerts.showWarningMessage('Recursive connection isn\'t allowed');
+                flow.Alerts.showWarningMessage('Recursive connections aren\'t allowed');
                 return false;
             }
             else if (reverseConn.length > 0) { // A-B B-A conn, prohibited TODO any reason to allow this?
@@ -1036,23 +1071,14 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-                return true;
-            }
-        });
-    })();
-
-	(function _connectionMaded() {
-        jsPlumb.bind("connection", function(info, originalEvent) {
-            if (originalEvent !== undefined) { // acontece no load (conexão estabelecida programaticamente)
-                var connection = info.connection,
-					sourceShape = connection.source;
-
-                if (connection.suspendedElement === undefined) { // new connection
-					//TODO flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+				if (info.connection.suspendedElement === undefined) { // new connection
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
                 }
 				else { // connection moved
-					// TODOflow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
 				}
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
+
+                return true;
             }
         });
     })();
@@ -1590,6 +1616,8 @@ var flow = (function(flow) {
 	};
 
 	Const.DIAGRAM_EVENT = {
+		CREATED: 'diagram_created',
+		DELETED: 'diagram_deleted',
 		LOADED: 'diagram_loaded'
 	};
 
@@ -1879,7 +1907,7 @@ var flow = (function(flow, jsPlumb) {
 			}
 			catch (e) {
 				flow.log(e);
-				flow.UI.markFailure("Erro de sintaxe", this.selector);
+				flow.UI.markFailure('Syntax error', this.selector);
 			}
 
 			return this.getNextNodeSelector();
@@ -2054,6 +2082,8 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		flow.UI.enableExecutionButtons();
 
+		flow.Util.trigger(flow.Const.DIAGRAM_EVENT.CREATED, newDiagram);
+
 		return newDiagram;
 
 	};
@@ -2063,12 +2093,16 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		flow.storeDiagramData(data);
 
+		flow.Util.trigger(flow.Const.DIAGRAM_EVENT.DELETED, diagram);
+
 		flow.Util.remove(diagram);
 
 		flow.Selection.cleanSelection();
 
 		// @fix jsPlumb 1.6.2+. Without this the connections remain intact (no idea why)
 		jsPlumb.detachEveryConnection();
+
+		flow.State.cleanState(); // clean closed diagram state data
 	};
 
 	flow.openLocallyStoredDiagrams = function() {
