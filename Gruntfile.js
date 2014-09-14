@@ -1,5 +1,11 @@
 
 module.exports = function(grunt) {
+	var _banner = 'flow.chart.js - licensed under the MIT license. - ' +
+		'Copyright (c) Bruno Roberto Burigo (brunorb8@hotmail.com) - ' +
+		'https://github.com/BrunoRB/flow-chart.js - ' +
+		'<%= grunt.template.today("yyyy-mm-dd") %>',
+		_jsBanner = '/**' + _banner + '*/\n';
+
 	var _shapes = [
 		{
 			type: 'begin', hasUserText: false, maxOutputs: 1, maxInputs: 0, maxCopies: 1, connectionType: 'text'
@@ -30,11 +36,11 @@ module.exports = function(grunt) {
 	var indexTemplate = grunt.file.read('./src/templates/index.template.html'),
 		processedTemplateDev = grunt.template.process(
 			indexTemplate,
-			{data: {shapes: _shapes, isProduction: false}}
+			{data: {shapes: _shapes, isProduction: false, banner: _banner}}
 		),
 		processedTemplateProd = grunt.template.process(
 			indexTemplate,
-			{data: {shapes: _shapes, isProduction: true}}
+			{data: {shapes: _shapes, isProduction: true, banner: _banner}}
 		);
 
 	grunt.file.write('./src/index.html', processedTemplateDev);
@@ -44,6 +50,9 @@ module.exports = function(grunt) {
     grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		concat: {
+			options: {
+                banner: _jsBanner
+            },
             flowchart: {
                 src: [
                     'src/js/util.js', 'src/js/state.js', 'src/js/cache.js', 'src/js/alerts.js', 'src/js/defaults.js',
@@ -60,8 +69,7 @@ module.exports = function(grunt) {
                 mangle: true,
                 squeeze: true,
                 codegen: true,
-                banner: '/*! flow.chart.js - ' +
-                    '<%= grunt.template.today("yyyy-mm-dd") %> */'
+                banner: _jsBanner
             },
             targetOne: {
                 src: ['dist/js/flow-chart.js'],
@@ -77,8 +85,8 @@ module.exports = function(grunt) {
 		htmlmin: {
             dist: {
                 options: {
-                    removeComments: true,
-                    collapseWhitespace: true
+					removeComments: false,
+					collapseWhitespace: true
                 },
                 files: {// Dictionary of files
                     'dist/index.html': 'dist/index.html',

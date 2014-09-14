@@ -1,3 +1,4 @@
+/**flow.chart.js - licensed under the MIT license. - Copyright (c) Bruno Roberto Burigo (brunorb8@hotmail.com) - https://github.com/BrunoRB/flow-chart.js - 2014-09-14*/
 /**
  * Util Submodule
  */
