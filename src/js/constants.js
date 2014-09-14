@@ -19,6 +19,8 @@ var flow = (function(flow) {
 	};
 
 	Const.DIAGRAM_EVENT = {
+		CREATED: 'diagram_created',
+		DELETED: 'diagram_deleted',
 		LOADED: 'diagram_loaded'
 	};
 

@@ -272,16 +272,15 @@ var flow = (function(flow, doc, jsPlumb) {
 
             if (isDel && targetNodeName !== 'input') { // ignore "del" when in a shape input
                 flow.Selection.deleteSelectedItems();
-				flowchart.focus(); // after a deletion the flowchart loses focus
+				flowchart.focus(); // after a deletion the flowchart lose it's focus
+            }
+			else if (event.keyCode === 90 && event.ctrlKey && event.shiftKey) {
+                flow.State.redo();
             }
             else if (event.keyCode === 90 && event.ctrlKey) {
-                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-				flow.State.undo(); /// TODO
+				flow.State.undo();
             }
-            else if (event.keyCode === 89 && event.ctrlKey) {
-                flow.Alerts.showInfoMessage('Sorry, this feature is not implemented yet.');
-                //flow.State.undoRevert(flowchart);
-            }
+
         });
     };
 
@@ -335,6 +334,8 @@ var flow = (function(flow, doc, jsPlumb) {
 				extraData = event.payload;
 
 			flow.State.pushShapeAlteration(shape, extraData);
+
+			flow.State.cleanRedoState();  // after an element change we have a redo invalidation
 		});
 	};
 
@@ -359,23 +360,14 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-                return true;
-            }
-        });
-    })();
-
-	(function _connectionMaded() {
-        jsPlumb.bind("connection", function(info, originalEvent) {
-            if (originalEvent !== undefined) { // acontece no load (conexão estabelecida programaticamente)
-                var connection = info.connection,
-					sourceShape = connection.source;
-
-                if (connection.suspendedElement === undefined) { // new connection
-					//TODO flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
+				if (info.connection.suspendedElement === undefined) { // new connection
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
                 }
 				else { // connection moved
-					// TODOflow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, sourceShape);
 				}
+					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
+
+                return true;
             }
         });
     })();

@@ -111,5 +111,9 @@ var flow = (function(flow, doc, jsPlumbUtil) {
 		return !window.isNaN(el);
 	};
 
+	Util.clone = function(obj) {
+		return jsPlumbUtil.clone(obj);
+	};
+
 	return flow;
 })(flow || {}, document, jsPlumbUtil);

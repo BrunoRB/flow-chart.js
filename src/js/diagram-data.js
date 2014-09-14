@@ -31,7 +31,10 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		for (var i=targetConnections.length; i--; ) {
 			var conn = targetConnections[i],
-				id = conn.target.getAttribute('data-flow-shape-id');
+				// when you move a conn, target is a invalid el so we need t use the .suspendedElement
+				target = conn.suspendedElement || conn.target,
+				id = target.getAttribute('data-flow-shape-id');
+
 			shapeTargetConnections[id]  = {
 				label: conn.getLabel()
 			};

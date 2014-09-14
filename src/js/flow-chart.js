@@ -76,6 +76,8 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		flow.UI.enableExecutionButtons();
 
+		flow.Util.trigger(flow.Const.DIAGRAM_EVENT.CREATED, newDiagram);
+
 		return newDiagram;
 
 	};
@@ -85,12 +87,16 @@ var flow = (function(flow, doc, jsPlumb) {
 
 		flow.storeDiagramData(data);
 
+		flow.Util.trigger(flow.Const.DIAGRAM_EVENT.DELETED, diagram);
+
 		flow.Util.remove(diagram);
 
 		flow.Selection.cleanSelection();
 
 		// @fix jsPlumb 1.6.2+. Without this the connections remain intact (no idea why)
 		jsPlumb.detachEveryConnection();
+
+		flow.State.cleanState(); // clean closed diagram state data
 	};
 
 	flow.openLocallyStoredDiagrams = function() {
