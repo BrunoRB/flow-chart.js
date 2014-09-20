@@ -65,6 +65,10 @@ var flow = (function(flow, doc, jsPlumb) {
 						flow.Alerts.showErrorMessage('No diagrams found in the browser');
 					}
 					break;
+				case 'examples':
+					flow.openDiagrams(flow.examples);
+					flow.Alerts.showSuccessMessage('Examples open');
+					break;
 				default:
 					var message = 'Open ' + openAs + ' option doesn\'t exist';
 					flow.Alerts.showErrorMessage(message);
@@ -342,7 +346,8 @@ var flow = (function(flow, doc, jsPlumb) {
 	(function _beforeDropConnection() {
         jsPlumb.bind('beforeDrop', function(info) {
             var source = doc.getElementById(info.sourceId),
-				target = doc.getElementById(info.targetId);
+				target = doc.getElementById(info.targetId),
+				targetType = target.getAttribute('data-flow-shape-type');
 
             var reverseConn = jsPlumb.getConnections({source: target, target: source}), // conns provenient from target
 				conn = jsPlumb.getConnections({source: source, target: target}); // conns provenient from source
@@ -351,7 +356,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 flow.Alerts.showWarningMessage('Recursive connections aren\'t allowed');
                 return false;
             }
-            else if (reverseConn.length > 0) { // A-B B-A conn, prohibited TODO any reason to allow this?
+            else if (reverseConn.length > 0 && targetType !== flow.Const.SHAPE_TYPE.DECISION) {
                 flow.Alerts.showWarningMessage('Elements already connected');
                 return false;
             }
@@ -360,13 +365,7 @@ var flow = (function(flow, doc, jsPlumb) {
                 return false;
             }
             else {
-				if (info.connection.suspendedElement === undefined) { // new connection
-					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
-                }
-				else { // connection moved
-				}
-					flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
-
+				flow.Util.trigger(flow.Const.SHAPE_EVENT.ALTERATED, source);
                 return true;
             }
         });

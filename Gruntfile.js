@@ -14,17 +14,17 @@ module.exports = function(grunt) {
 			type: 'end', hasUserText: false, maxOutputs: 0, maxInputs: 1, maxCopies: 1, connectionType: 'text'
 		},
 		{
-			type: 'process', hasUserText: true, maxOutputs: 1, maxInputs: 1, maxCopies: -1, connectionType: 'text'
+			type: 'process', hasUserText: true, maxOutputs: 1, maxInputs: 2, maxCopies: -1, connectionType: 'text'
 		},
 		{
-			type: 'manual_input', hasUserText: true, maxOutputs: 1, maxInputs: 1, maxCopies: -1,
+			type: 'manual_input', hasUserText: true, maxOutputs: 1, maxInputs: 2, maxCopies: -1,
 			connectionType: 'text'
 		},
 		{
-			type: 'display', hasUserText: true, maxOutputs: 1, maxInputs: 1, maxCopies: -1, connectionType: 'text'
+			type: 'display', hasUserText: true, maxOutputs: 1, maxInputs: 2, maxCopies: -1, connectionType: 'text'
 		},
 		{
-			type: 'decision', hasUserText: true, maxOutputs: 2, maxInputs: 1, maxCopies: -1,
+			type: 'decision', hasUserText: true, maxOutputs: 2, maxInputs: 2, maxCopies: -1,
 			connectionType: 'boolean'
 		},
 		{
