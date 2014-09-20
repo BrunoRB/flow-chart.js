@@ -382,6 +382,7 @@
   z-index: 10;
 }
 #right-area.flow.diagram.container .flow.active.diagram .connection.label {
+  text-transform: uppercase;
   font-weight: bold;
   color: #00b5ad;
   font-size: large;
