@@ -178,7 +178,7 @@ var flow = (function(flow, jsPlumb) {
 
 		this.getParsedContent = function() {
 			return this.getContent().
-				replace(/([a-zA-Z_$][0-9a-zA-Z_$]*)/, " flow.Nodes.varTable.$1 = prompt('Insira o valor de $1');");
+				replace(/([a-zA-Z_$][0-9a-zA-Z_$]*)/, " flow.Nodes.varTable.$1 = prompt('Insert the value of $1');");
 		};
 	};
 	ManualInput.prototype = Object.create(Node.prototype);
