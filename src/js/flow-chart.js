@@ -299,7 +299,7 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	var _makeDiagramDroppable = function(diagram) {
-		var k = jsPlumb._katavorio;
+		var k = jsPlumb._katavorio_main;
 		k.droppable(diagram, {
 			scope: 'dragFromMenu',
 			drop:function(params) {

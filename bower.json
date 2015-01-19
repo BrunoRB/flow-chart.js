@@ -2,7 +2,7 @@
 	"name": "flow-chart.js",
 	"version": "0.0.1",
 	"dependencies": {
-		"jsPlumb": "1.6.2",
+		"jsPlumb": "latest",
 		"less": "latest",
 		"components-font-awesome": "latest"
 	}

@@ -7,7 +7,7 @@
 	<%
 	if (!isProduction) {
 	%>
-		<script src="../bower_components/jsPlumb/dist/js/dom.jsPlumb-1.6.2.js"></script>
+		<script src="../bower_components/jsPlumb/dist/js/dom.jsPlumb-1.7.2.js"></script>
 
 		<script src="js/constants.js"></script>
 		<script src="js/util.js"></script>
@@ -34,7 +34,7 @@
 			var less = less || {};
 			less.env = 'development'; // avoid less crazy cache
 		</script>
-		<script src="../bower_components/less/dist/less-1.7.0.js"></script> <!-- need to be after the stylesheets -->
+		<script src="../bower_components/less/dist/less.js"></script> <!-- has to be after the stylesheets -->
 	<%
 	}
 	else {
