@@ -1,4 +1,4 @@
-/**flow.chart.js - licensed under the MIT license. - Copyright (c) Bruno Roberto Burigo (brunorb8@hotmail.com) - https://github.com/BrunoRB/flow-chart.js - 2015-01-19*/
+/**flow.chart.js - licensed under the MIT license. - Copyright (c) Bruno Roberto Burigo (brunorb8@hotmail.com) - https://github.com/BrunoRB/flow-chart.js - 2015-02-08*/
 /**
  * Util Submodule
  */
@@ -2434,7 +2434,7 @@ var flow = (function(flow, doc, jsPlumb) {
 	};
 
 	var _makeDiagramDroppable = function(diagram) {
-		var k = jsPlumb._katavorio;
+		var k = jsPlumb._katavorio_main;
 		k.droppable(diagram, {
 			scope: 'dragFromMenu',
 			drop:function(params) {
